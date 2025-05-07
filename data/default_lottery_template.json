@@ -1,0 +1,56 @@
+[
+  {
+    "title": "抽奖乐翻天",
+    "is_hot": true,
+    "thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a82b7ead764.03743168.jpg",
+    "active_thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a82b7eaa001.85661427.gif",
+    "marking": "lucky_draw",
+    "status": 1,
+    "type": "h5_lottery"
+  },
+  {
+    "title": "幸运大转盘",
+    "is_hot": true,
+    "thumb": "https://cdn.mixpwr.com/member_center_mgm/2021/11/22/QINIU619b61f6a1ace9.00384038.jpg",
+    "active_thumb": "https://cdn.mixpwr.com/member_center_mgm/2021/11/22/QINIU619b61f6a49887.86117904.gif",
+    "marking": "lucky_wheel",
+    "status": 1,
+    "type": "h5_lottery"
+  },
+  {
+    "title": "九宫格抽奖",
+    "is_hot": true,
+    "thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a83a995b0e6.43951864.jpg",
+    "active_thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a83a99d9953.49585091.gif",
+    "marking": "jiu_gong_ge",
+    "status": 0,
+    "type": "h5_lottery"
+  },
+  {
+    "title": "老虎机抽奖",
+    "is_hot": false,
+    "thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a83a991c708.78035239.jpg",
+    "active_thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a83a991c708.78035239.jpg",
+    "marking": "slot_machine",
+    "status": 1,
+    "type": "h5_lottery"
+  },
+  {
+    "title": "幸运扭蛋机",
+    "is_hot": false,
+    "thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a83a9b50cf2.09906902.jpg",
+    "active_thumb": "https://cdn.mixpwr.com/loyalty-draw/2021/10/28/QINIU617a83a9afa4c4.75032936.gif",
+    "marking": "lucky_eggshell",
+    "status": 1,
+    "type": "h5_lottery"
+  },
+  {
+    "title": "现场抽奖",
+    "is_hot": false,
+    "thumb": "https://cdn.mixpwr.com/event_cloud/2021/12/08/QINIU61b028638caef5.58884053.jpg",
+    "active_thumb": "https://cdn.mixpwr.com/event_cloud/2021/12/08/QINIU61b02898747c21.48729236.gif",
+    "marking": "on_site",
+    "status": 1,
+    "type": "on_site_lottery"
+  }
+]

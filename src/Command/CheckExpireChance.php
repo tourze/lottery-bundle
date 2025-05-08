@@ -8,11 +8,11 @@ use LotteryBundle\Entity\Chance;
 use LotteryBundle\Enum\ChanceStatusEnum;
 use LotteryBundle\Event\AfterChanceExpireEvent;
 use LotteryBundle\Repository\ChanceRepository;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 
 #[AsCronTask('* * * * *')]

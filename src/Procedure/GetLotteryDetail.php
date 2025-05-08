@@ -71,7 +71,7 @@ class GetLotteryDetail extends CacheableProcedure
 
     protected function getCacheDuration(JsonRpcRequest $request): int
     {
-        return MINUTE_IN_SECONDS * 10;
+        return 60 * 10;
     }
 
     protected function getCacheTags(JsonRpcRequest $request): iterable

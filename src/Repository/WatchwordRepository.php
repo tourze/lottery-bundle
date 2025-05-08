@@ -4,7 +4,6 @@ namespace LotteryBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use DoctrineEnhanceBundle\Repository\CommonRepositoryAware;
 use LotteryBundle\Entity\Watchword;
 
 /**
@@ -15,7 +14,6 @@ use LotteryBundle\Entity\Watchword;
  */
 class WatchwordRepository extends ServiceEntityRepository
 {
-    use CommonRepositoryAware;
 
     public function __construct(ManagerRegistry $registry)
     {

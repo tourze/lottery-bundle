@@ -4,7 +4,6 @@ namespace LotteryBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use DoctrineEnhanceBundle\Repository\CommonRepositoryAware;
 use LotteryBundle\Entity\Chance;
 
 /**
@@ -15,7 +14,6 @@ use LotteryBundle\Entity\Chance;
  */
 class ChanceRepository extends ServiceEntityRepository
 {
-    use CommonRepositoryAware;
 
     public function __construct(ManagerRegistry $registry)
     {

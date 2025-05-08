@@ -2,10 +2,10 @@
 
 namespace LotteryBundle\Entity;
 
-use AppBundle\Entity\BizUser;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Repository\WatchwordLogRepository;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
@@ -90,7 +90,7 @@ class WatchwordLog
     #[FormField(title: '用户')]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private ?BizUser $user = null;
+    private ?UserInterface $user = null;
 
     public function isValid(): ?bool
     {
@@ -128,12 +128,12 @@ class WatchwordLog
         return $this;
     }
 
-    public function getUser(): ?BizUser
+    public function getUser(): ?UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(?BizUser $user): self
+    public function setUser(?UserInterface $user): self
     {
         $this->user = $user;
 

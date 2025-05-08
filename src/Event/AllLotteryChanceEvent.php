@@ -2,8 +2,8 @@
 
 namespace LotteryBundle\Event;
 
-use AppBundle\Entity\BizUser;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
@@ -13,7 +13,7 @@ class AllLotteryChanceEvent extends Event
 {
     private QueryBuilder $queryBuilder;
 
-    private BizUser $user;
+    private UserInterface $user;
 
     private string $activityId;
 
@@ -27,12 +27,12 @@ class AllLotteryChanceEvent extends Event
         $this->queryBuilder = $queryBuilder;
     }
 
-    public function getUser(): BizUser
+    public function getUser(): UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(BizUser $user): void
+    public function setUser(UserInterface $user): void
     {
         $this->user = $user;
     }

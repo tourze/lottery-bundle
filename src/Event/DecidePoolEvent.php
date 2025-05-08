@@ -2,10 +2,10 @@
 
 namespace LotteryBundle\Event;
 
-use AppBundle\Entity\BizUser;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Pool;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class DecidePoolEvent extends Event
@@ -14,7 +14,7 @@ class DecidePoolEvent extends Event
 
     private ?Pool $pool = null;
 
-    private ?BizUser $user = null;
+    private ?UserInterface $user = null;
 
     private ?Activity $activity = null;
 
@@ -38,12 +38,12 @@ class DecidePoolEvent extends Event
         $this->pool = $pool;
     }
 
-    public function getUser(): ?BizUser
+    public function getUser(): ?UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(?BizUser $user): void
+    public function setUser(?UserInterface $user): void
     {
         $this->user = $user;
     }

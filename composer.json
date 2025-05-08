@@ -47,8 +47,8 @@
     "tourze/symfony-async-bundle": "0.0.*",
     "tourze/symfony-cron-job-bundle": "0.1.*",
     "tourze/symfony-ecol-bundle": "0.1.*",
-    "yiisoft/json": "^1.0",
-    "tourze/text-manage-bundle": "0.0.*"
+    "tourze/text-manage-bundle": "0.0.*",
+    "yiisoft/json": "^1.0"
   },
   "require-dev": {
     "phpstan/phpstan": "^2.1",

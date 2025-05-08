@@ -58,8 +58,7 @@
     "tourze/symfony-ecol-bundle": "0.1.*",
     "tourze/text-manage-bundle": "0.0.*",
     "tourze/user-event-bundle": "~0.0.3",
-    "tourze/user-id-bundle": "0.1.*",
-    "yiisoft/json": "^1.0"
+    "tourze/user-id-bundle": "0.1.*"
   },
   "require-dev": {
     "maglnet/composer-require-checker": "^4",

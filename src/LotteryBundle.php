@@ -14,7 +14,6 @@ class LotteryBundle extends Bundle implements BundleDependencyInterface
             \Tourze\DoctrineTimestampBundle\DoctrineTimestampBundle::class => ['all' => true],
             \Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle::class => ['all' => true],
             \Tourze\Symfony\CronJob\CronJobBundle::class => ['all' => true],
-            \AntdCpBundle\AntdCpBundle::class => ['all' => true],
         ];
     }
 }

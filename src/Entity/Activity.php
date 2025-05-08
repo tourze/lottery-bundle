@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use DoctrineEnhanceBundle\Traits\WechatShareFriendConfigAware;
 use LotteryBundle\Repository\ActivityRepository;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
@@ -87,7 +86,59 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     {
         return $this->updateTime;
     }
-    use WechatShareFriendConfigAware;
+
+    #[FormField(title: '分享路径')]
+    #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享路径'])]
+    private ?string $sharePath = null;
+
+    #[FormField(title: '分享标题')]
+    #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享标题'])]
+    private ?string $shareTitle = null;
+
+    #[ImagePickerField]
+    #[PictureColumn]
+    #[FormField(title: '分享图片')]
+    #[ORM\Column(length: 255, nullable: true, options: ['comment' => '分享图片'])]
+    private ?string $sharePicture = null;
+
+    public function getShareTitle(): ?string
+    {
+        return $this->shareTitle;
+    }
+
+    public function setShareTitle(?string $shareTitle): void
+    {
+        $this->shareTitle = $shareTitle;
+    }
+
+    public function getSharePicture(): ?string
+    {
+        return $this->sharePicture;
+    }
+
+    public function setSharePicture(?string $sharePicture): void
+    {
+        $this->sharePicture = $sharePicture;
+    }
+
+    public function getSharePath(): ?string
+    {
+        return $this->sharePath;
+    }
+
+    public function setSharePath(?string $sharePath): void
+    {
+        $this->sharePath = $sharePath;
+    }
+
+    public function retrieveWechatShareFriendConfig(): array
+    {
+        return [
+            'shareTitle' => $this->getShareTitle(),
+            'sharePicture' => $this->getSharePicture(),
+            'sharePath' => $this->getSharePath(),
+        ];
+    }
 
     #[CreatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]

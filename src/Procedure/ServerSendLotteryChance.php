@@ -2,11 +2,11 @@
 
 namespace LotteryBundle\Procedure;
 
-use AppBundle\Service\UserService;
 use Carbon\Carbon;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Service\LotteryService;
+use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -39,7 +39,7 @@ class ServerSendLotteryChance extends LockableProcedure
     public function __construct(
         private readonly ActivityRepository $activityRepository,
         private readonly LotteryService $lotteryService,
-        private readonly UserService $userService,
+        private readonly UserLoaderInterface $userLoader,
     ) {
     }
 
@@ -53,7 +53,7 @@ class ServerSendLotteryChance extends LockableProcedure
             throw new ApiException('找不到抽奖活动');
         }
 
-        $user = $this->userService->findUserByIdentity($this->userIdentity);
+        $user = $this->userLoader->loadUserByIdentifier($this->userIdentity);
         if (!$user) {
             throw new ApiException('找不到用户信息');
         }

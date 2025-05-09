@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Repository\ActivityRepository;
-use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,7 +21,6 @@ class TestController extends AbstractController
         int $limit,
         BizUserRepository $userRepository,
         ActivityRepository $activityRepository,
-        ChanceRepository $chanceRepository,
         EntityManagerInterface $entityManager,
     ): Response {
         $activity = $activityRepository->findOneBy(['id' => $id]);

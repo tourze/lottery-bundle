@@ -2,7 +2,6 @@
 
 namespace LotteryBundle\Service;
 
-use AppBundle\Entity\BizUser;
 use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Activity;
@@ -14,6 +13,7 @@ use LotteryBundle\Repository\ChanceRepository;
 use LotteryBundle\Repository\PrizeRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[Autoconfigure(lazy: true, public: true)]
@@ -178,7 +178,7 @@ class LotteryService
     /**
      * 为指定用户发机会
      */
-    public function giveChance(BizUser $user, Chance $chance): void
+    public function giveChance(UserInterface $user, Chance $chance): void
     {
         $chance->setUser($user);
         $chance->setStartTime(Carbon::now());
@@ -202,7 +202,7 @@ class LotteryService
     /**
      * 获取有效次数
      */
-    public function countValidChance(BizUser $user, Activity $activity): int
+    public function countValidChance(UserInterface $user, Activity $activity): int
     {
         $c = $this->chanceRepository->createQueryBuilder('a')
             ->select('COUNT(a.id)')

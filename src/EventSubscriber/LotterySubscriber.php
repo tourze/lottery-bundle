@@ -63,7 +63,7 @@ class LotterySubscriber
         }
 
         $form = $event->getForm();
-        $this->getRedis()->set($this->luckyService::LOTTERY_PRIZE_REDIS_COUNT . $entity->getId(), intval($form['quantity']), MONTH_IN_MINUTES * 3);
+        $this->getRedis()->set($this->luckyService::LOTTERY_PRIZE_REDIS_COUNT . $entity->getId(), intval($form['quantity']), 60 * 60 * 24 * 3);
     }
 
     private function getRedis(): \Redis

@@ -2,7 +2,6 @@
 
 namespace LotteryBundle\ExpressionLanguage\Function;
 
-use AppBundle\Entity\BizUser;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use LotteryBundle\Entity\Activity;
@@ -12,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -55,7 +55,7 @@ class ChanceFunctionProvider implements ExpressionFunctionProviderInterface
      */
     public function getLotteryValidChannelCount(array $values, UserInterface $user, Activity $activity): int
     {
-        if (!($user instanceof BizUser)) {
+        if (!($user instanceof PasswordAuthenticatedUserInterface)) {
             return 0;
         }
 
@@ -74,8 +74,8 @@ class ChanceFunctionProvider implements ExpressionFunctionProviderInterface
         Activity $activity,
         string|CarbonInterface|\DateTimeInterface $expireTime,
     ): bool {
-        if (!($user instanceof BizUser)) {
-            $this->logger->warning('非系统用户信息，不允许发送抽奖机会', [
+        if (!($user instanceof PasswordAuthenticatedUserInterface)) {
+            $this->logger->warning('非正常用户信息，不允许发送抽奖机会', [
                 'user' => $user,
                 'activity' => $user,
                 'values' => $values,

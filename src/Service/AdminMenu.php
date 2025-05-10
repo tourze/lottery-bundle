@@ -1,6 +1,6 @@
 <?php
 
-namespace LotteryBundle;
+namespace LotteryBundle\Service;
 
 use Knp\Menu\ItemInterface;
 use LotteryBundle\Entity\Activity;

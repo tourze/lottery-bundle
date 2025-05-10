@@ -5,17 +5,19 @@ services:
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
     public: true
 
-  LotteryBundle\:
-    resource: '../../'
-    exclude:
-      - '../../DependencyInjection/'
-      - '../../Enum/'
-      - '../../Entity/'
-      - '../../Event/'
-      - '../../Message/'
-      - '../../Model/'
-      - '../../Exception/'
-      - '../../Resources/'
-      - '../../Tests/'
-
-  LotteryBundle\Repository\StockRepository: ~
+  LotteryBundle\Command\:
+    resource: '../../Command/'
+  LotteryBundle\Controller\:
+    resource: '../../Controller/'
+  LotteryBundle\EventSubscriber\:
+    resource: '../../EventSubscriber/'
+  LotteryBundle\ExpressionLanguage\:
+    resource: '../../ExpressionLanguage/'
+  LotteryBundle\MessageHandler\:
+    resource: '../../MessageHandler/'
+  LotteryBundle\Procedure\:
+    resource: '../../Procedure/'
+  LotteryBundle\Repository\:
+    resource: '../../Repository/'
+  LotteryBundle\Service\:
+    resource: '../../Service/'

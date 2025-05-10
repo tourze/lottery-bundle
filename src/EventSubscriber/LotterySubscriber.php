@@ -2,14 +2,9 @@
 
 namespace LotteryBundle\EventSubscriber;
 
-use AntdCpBundle\Event\CreateRecordEvent;
-use AntdCpBundle\Event\ModifyRecordEvent;
 use Carbon\Carbon;
 use LotteryBundle\Entity\ActivityAttribute;
-use LotteryBundle\Entity\Prize;
 use LotteryBundle\Event\ChanceEvent;
-use LotteryBundle\Service\LotteryService;
-use Symfony\Component\DependencyInjection\Attribute\AutowireServiceClosure;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
@@ -17,12 +12,6 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
  */
 class LotterySubscriber
 {
-    public function __construct(
-        private readonly LotteryService $luckyService,
-        #[AutowireServiceClosure('snc_redis.messenger')] private readonly \Closure $redis,
-    ) {
-    }
-
     #[AsEventListener]
     public function onChance(ChanceEvent $event): void
     {
@@ -47,27 +36,5 @@ class LotterySubscriber
                 }
             }
         }
-    }
-
-    /**
-     * 补充缓存，用于抽奖
-     */
-    #[AsEventListener(event: CreateRecordEvent::class)]
-    #[AsEventListener(event: ModifyRecordEvent::class)]
-    public function buildPrizeRedis(ModifyRecordEvent|CreateRecordEvent $event): void
-    {
-        $entity = $event->getModel();
-
-        if (!$entity instanceof Prize) {
-            return;
-        }
-
-        $form = $event->getForm();
-        $this->getRedis()->set($this->luckyService::LOTTERY_PRIZE_REDIS_COUNT . $entity->getId(), intval($form['quantity']), 60 * 60 * 24 * 3);
-    }
-
-    private function getRedis(): \Redis
-    {
-        return ($this->redis)();
     }
 }

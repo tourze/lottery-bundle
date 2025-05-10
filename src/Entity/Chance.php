@@ -2,21 +2,14 @@
 
 namespace LotteryBundle\Entity;
 
-use AntdCpBundle\Builder\Action\ApiCallAction;
-use AntdCpBundle\Builder\Field\DateRangePickerField;
 use BenefitBundle\Model\BenefitResource;
-use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Enum\ChanceStatusEnum;
-use LotteryBundle\Message\SendPrizeMessage;
 use LotteryBundle\Repository\ChanceRepository;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
@@ -33,14 +26,12 @@ use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Action\ListAction;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Filter\Filterable;
 use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
-use Tourze\JsonRPC\Core\Exception\ApiException;
 
 #[AsPermission(title: '抽奖机会')]
 #[Deletable]
@@ -176,9 +167,6 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '获取时间'])]
     private ?\DateTimeInterface $createTime = null;
 
-    /**
-     * @DateRangePickerField()
-     */
     #[UpdateTimeColumn]
     #[ListColumn(order: 99, sorter: true)]
     #[Filterable]
@@ -610,36 +598,6 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         $this->reviewUser = $reviewUser;
 
         return $this;
-    }
-
-    #[ListAction(title: '审核发奖')]
-    public function genReviewBtn()
-    {
-        return ApiCallAction::gen()
-            ->setLabel('审核发奖')
-            ->setConfirmText('是否确认要审核？')
-            ->setCallback(function (ChanceRepository $repository, MessageBusInterface $messageBus, Security $security, EntityManagerInterface $entityManager) {
-                if ($this->getPrize() && $this->getPrize()->isNeedReview()) {
-                    if (ChanceStatusEnum::WINNING !== $this->getStatus()) {
-                        throw new ApiException('当前状态不允许审核通过');
-                    }
-
-                    $this->setStatus(ChanceStatusEnum::REVIEWED);
-                    $this->setReviewTime(Carbon::now());
-                    $this->setReviewUser($security->getUser());
-                    $entityManager->persist($this);
-                    $entityManager->flush();
-
-                    $message = new SendPrizeMessage();
-                    $messageBus->dispatch($message);
-
-                    return [
-                        '__message' => '审核通过，正在发奖中',
-                    ];
-                } else {
-                    throw new ApiException('该奖品无需审核发奖');
-                }
-            });
     }
 
     public function getCreatedFromIp(): ?string

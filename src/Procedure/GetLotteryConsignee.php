@@ -45,7 +45,7 @@ class GetLotteryConsignee extends CacheableProcedure
         return $this->normalizer->normalize($chance->getConsignee(), 'array', ['groups' => 'restful_read']) ?? [];
     }
 
-    protected function getCacheKey(JsonRpcRequest $request): string
+    public function getCacheKey(JsonRpcRequest $request): string
     {
         $key = static::buildParamCacheKey($request->getParams());
         if ($this->security->getUser()) {
@@ -55,12 +55,12 @@ class GetLotteryConsignee extends CacheableProcedure
         return $key;
     }
 
-    protected function getCacheDuration(JsonRpcRequest $request): int
+    public function getCacheDuration(JsonRpcRequest $request): int
     {
         return 60 * 60;
     }
 
-    protected function getCacheTags(JsonRpcRequest $request): iterable
+    public function getCacheTags(JsonRpcRequest $request): iterable
     {
         yield CacheHelper::getClassTags(Consignee::class);
     }

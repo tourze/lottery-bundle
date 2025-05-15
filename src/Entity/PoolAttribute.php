@@ -34,20 +34,12 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '内容'])]
     private ?string $value = null;
 
-    #[ORM\ManyToOne(targetEntity: Pool::class, inversedBy: 'poolAttributes')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    private ?Pool $pool = null;
-
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
 
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
+    #[ORM\ManyToOne(targetEntity: Pool::class, inversedBy: 'poolAttributes')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?Pool $pool = null;
 
     #[CreatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
@@ -56,6 +48,14 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
     #[UpdatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
+
+    #[CreateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
+    private ?string $createdFromIp = null;
+
+    #[UpdateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
+    private ?string $updatedFromIp = null;
 
     #[IndexColumn]
     #[CreateTimeColumn]
@@ -78,30 +78,6 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
     public function getId(): ?string
     {
         return $this->id;
-    }
-
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
     }
 
     public function getName(): ?string
@@ -152,6 +128,30 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
         return $this;
     }
 
+    public function setCreatedBy(?string $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?string
+    {
+        return $this->createdBy;
+    }
+
+    public function setUpdatedBy(?string $updatedBy): self
+    {
+        $this->updatedBy = $updatedBy;
+
+        return $this;
+    }
+
+    public function getUpdatedBy(): ?string
+    {
+        return $this->updatedBy;
+    }
+
     public function getCreatedFromIp(): ?string
     {
         return $this->createdFromIp;
@@ -176,18 +176,6 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
         return $this;
     }
 
-    public function retrieveAdminArray(): array
-    {
-        return [
-            'id' => $this->getId(),
-            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
-            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
-            'name' => $this->getName(),
-            'value' => $this->getValue(),
-            'remark' => $this->getRemark(),
-        ];
-    }
-
     public function setCreateTime(?\DateTimeInterface $createdAt): void
     {
         $this->createTime = $createdAt;
@@ -206,5 +194,17 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
     public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
+    }
+
+    public function retrieveAdminArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
+            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
+            'name' => $this->getName(),
+            'value' => $this->getValue(),
+            'remark' => $this->getRemark(),
+        ];
     }
 }

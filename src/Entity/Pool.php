@@ -52,14 +52,6 @@ class Pool implements \Stringable, AdminArrayInterface
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
     private ?bool $valid = false;
 
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
-
     #[CreatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
     private ?string $createdBy = null;
@@ -67,6 +59,14 @@ class Pool implements \Stringable, AdminArrayInterface
     #[UpdatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
+
+    #[CreateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
+    private ?string $createdFromIp = null;
+
+    #[UpdateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
+    private ?string $updatedFromIp = null;
 
     #[IndexColumn]
     #[CreateTimeColumn]
@@ -93,23 +93,13 @@ class Pool implements \Stringable, AdminArrayInterface
         return $this->getTitle();
     }
 
+    // ID相关
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function isValid(): ?bool
-    {
-        return $this->valid;
-    }
-
-    public function setValid(?bool $valid): self
-    {
-        $this->valid = $valid;
-
-        return $this;
-    }
-
+    // 基本信息相关
     public function getTitle(): ?string
     {
         return $this->title;
@@ -118,6 +108,19 @@ class Pool implements \Stringable, AdminArrayInterface
     public function setTitle(string $title): self
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    // 状态相关
+    public function isValid(): ?bool
+    {
+        return $this->valid;
+    }
+
+    public function setValid(?bool $valid): self
+    {
+        $this->valid = $valid;
 
         return $this;
     }
@@ -209,17 +212,7 @@ class Pool implements \Stringable, AdminArrayInterface
         return $this;
     }
 
-    public function retrieveAdminArray(): array
-    {
-        return [
-            'id' => $this->getId(),
-            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
-            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
-            'valid' => $this->isValid(),
-            'title' => $this->getTitle(),
-        ];
-    }
-
+    // 审计信息相关
     public function getCreatedFromIp(): ?string
     {
         return $this->createdFromIp;
@@ -286,5 +279,16 @@ class Pool implements \Stringable, AdminArrayInterface
     public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
+    }
+
+    public function retrieveAdminArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
+            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
+            'valid' => $this->isValid(),
+            'title' => $this->getTitle(),
+        ];
     }
 }

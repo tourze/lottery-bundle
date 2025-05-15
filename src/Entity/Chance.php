@@ -21,7 +21,6 @@ use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 
 #[ORM\Entity(repositoryClass: ChanceRepository::class)]
 #[ORM\Table(name: 'lottery_chance', options: ['comment' => '抽奖机会'])]
@@ -31,10 +30,6 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
-
-    #[ORM\ManyToOne(targetEntity: Activity::class, cascade: ['persist'], inversedBy: 'chances')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Activity $activity = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '任务标题', 'default' => ''])]
     private ?string $title = '';
@@ -49,6 +44,23 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '使用时间'])]
     private ?\DateTimeInterface $useTime = null;
+    
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '发送时间'])]
+    private ?\DateTimeInterface $sendTime = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $remark = null;
+
+    #[IndexColumn]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否有效'])]
+    private ?bool $valid = null;
+
+    #[ORM\Column(length: 100, nullable: true, enumType: ChanceStatusEnum::class, options: ['comment' => '状态'])]
+    private ?ChanceStatusEnum $status = ChanceStatusEnum::INIT;
+
+    #[ORM\ManyToOne(targetEntity: Activity::class, cascade: ['persist'], inversedBy: 'chances')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Activity $activity = null;
 
     #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
@@ -79,20 +91,6 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'chance')]
     private Collection $stocks;
 
-    /**
-     * 如果这里为true，同时在开始时间开始收、失效时间结束前这个机会才能使用
-     * 在使用后，这个状态会变更为false.
-     */
-    #[IndexColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否有效'])]
-    private ?bool $valid = null;
-
-    #[ORM\Column(length: 100, nullable: true, enumType: ChanceStatusEnum::class, options: ['comment' => '状态'])]
-    private ?ChanceStatusEnum $status = ChanceStatusEnum::INIT;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '发送时间'])]
-    private ?\DateTimeInterface $sendTime = null;
-
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '发送结果'])]
     private ?array $sendResult = [];
 
@@ -102,27 +100,15 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '概率上下文'])]
     private ?array $probabilityContext = [];
 
-    #[ORM\Version]
-    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => 1, 'comment' => '乐观锁版本号'])]
-    private ?int $lockVersion = null;
-
-    #[IndexColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '获取时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '抽奖时间'])]
-    private ?\DateTimeInterface $updateTime = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $remark = null;
-
     #[ORM\ManyToOne]
     private ?UserInterface $reviewUser = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '审核时间'])]
     private ?string $reviewTime = null;
+
+    #[ORM\Version]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => 1, 'comment' => '乐观锁版本号'])]
+    private ?int $lockVersion = null;
 
     #[CreatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
@@ -139,6 +125,15 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     #[UpdateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
+
+    #[IndexColumn]
+    #[CreateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '获取时间'])]
+    private ?\DateTimeInterface $createTime = null;
+
+    #[UpdateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '抽奖时间'])]
+    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -159,26 +154,14 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->id;
     }
 
-    public function getActivity(): ?Activity
+    public function getTitle(): string
     {
-        return $this->activity;
+        return $this->title ?? '';
     }
 
-    public function setActivity(?Activity $activity): self
+    public function setTitle(?string $title): self
     {
-        $this->activity = $activity;
-
-        return $this;
-    }
-
-    public function getValid(): ?bool
-    {
-        return $this->valid;
-    }
-
-    public function setValid(bool $valid): self
-    {
-        $this->valid = $valid;
+        $this->title = $title;
 
         return $this;
     }
@@ -207,14 +190,88 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this;
     }
 
-    public function getPrize(): ?Prize
+    public function getUseTime(): ?\DateTimeInterface
     {
-        return $this->prize;
+        return $this->useTime;
     }
 
-    public function setPrize(?Prize $prize): self
+    public function setUseTime(?\DateTimeInterface $useTime): self
     {
-        $this->prize = $prize;
+        $this->useTime = $useTime;
+
+        return $this;
+    }
+    
+    public function getSendTime(): ?\DateTimeInterface
+    {
+        return $this->sendTime;
+    }
+
+    public function setSendTime(?\DateTimeInterface $sendTime): self
+    {
+        $this->sendTime = $sendTime;
+
+        return $this;
+    }
+
+    public function getRemark(): ?string
+    {
+        return $this->remark;
+    }
+
+    public function setRemark(?string $remark): static
+    {
+        $this->remark = $remark;
+
+        return $this;
+    }
+
+    // 状态相关
+    public function getValid(): ?bool
+    {
+        return $this->valid;
+    }
+
+    public function setValid(bool $valid): self
+    {
+        $this->valid = $valid;
+
+        return $this;
+    }
+
+    public function getStatus(): ?ChanceStatusEnum
+    {
+        return $this->status;
+    }
+
+    public function setStatus(ChanceStatusEnum $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    // 关联实体相关
+    public function getActivity(): ?Activity
+    {
+        return $this->activity;
+    }
+
+    public function setActivity(?Activity $activity): self
+    {
+        $this->activity = $activity;
+
+        return $this;
+    }
+
+    public function getUser(): ?UserInterface
+    {
+        return $this->user;
+    }
+
+    public function setUser(?UserInterface $user): self
+    {
+        $this->user = $user;
 
         return $this;
     }
@@ -227,6 +284,18 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     public function setPool(?Pool $pool): self
     {
         $this->pool = $pool;
+
+        return $this;
+    }
+
+    public function getPrize(): ?Prize
+    {
+        return $this->prize;
+    }
+
+    public function setPrize(?Prize $prize): self
+    {
+        $this->prize = $prize;
 
         return $this;
     }
@@ -278,30 +347,6 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this;
     }
 
-    public function getUseTime(): ?\DateTimeInterface
-    {
-        return $this->useTime;
-    }
-
-    public function setUseTime(?\DateTimeInterface $useTime): self
-    {
-        $this->useTime = $useTime;
-
-        return $this;
-    }
-
-    public function getSendTime(): ?\DateTimeInterface
-    {
-        return $this->sendTime;
-    }
-
-    public function setSendTime(?\DateTimeInterface $sendTime): self
-    {
-        $this->sendTime = $sendTime;
-
-        return $this;
-    }
-
     public function getSendResult(): ?array
     {
         return $this->sendResult;
@@ -338,149 +383,13 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this;
     }
 
-    public function getLockVersion(): ?int
-    {
-        return $this->lockVersion;
-    }
-
-    public function setLockVersion(?int $lockVersion): self
-    {
-        $this->lockVersion = $lockVersion;
-
-        return $this;
-    }
-
-    public function getUser(): ?UserInterface
-    {
-        return $this->user;
-    }
-
-    public function setUser(?UserInterface $user): self
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    public function getTitle(): string
-    {
-        return strval($this->title);
-    }
-
-    public function setTitle(?string $title): self
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
-    #[ExportColumn(title: '奖品配置')]
+    // 奖品配置信息
     public function getPrizeConfig(): ?string
     {
-        if (empty($this->getPrize())) {
-            return '';
-        }
-
-        return $this->getPrize()->getTypeId();
+        return $this->getPrize()?->getName();
     }
 
-    public function setCreateTime(?\DateTimeInterface $createdAt): self
-    {
-        $this->createTime = $createdAt;
-
-        return $this;
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updatedAt): self
-    {
-        $this->updateTime = $updatedAt;
-
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function retrieveApiArray(): array
-    {
-        return array_merge($this->retrieveAdminArray(), [
-            'user' => [
-                'id' => $this->getUser()?->getId(),
-                'avatar' => $this->getUser()?->getAvatar(),
-                'username' => $this->getUser()?->getUsername(),
-                'identity' => $this->getUser()?->getIdentity(),
-                'nickName' => $this->getUser()?->getNickName(),
-                'email' => $this->getUser()?->getEmail(),
-                'mobile' => $this->getUser()?->getMobile(),
-                'createTime' => $this->getUser()?->getCreateTime(),
-                'updateTime' => $this->getUser()?->getUpdateTime(),
-                'valid' => $this->getUser()?->isValid(),
-            ],
-        ]);
-    }
-
-    public function retrievePlainArray(): array
-    {
-        if (empty($this->id)) {
-            return [];
-        }
-
-        return $this->retrieveApiArray();
-    }
-
-    public function retrieveAdminArray(): array
-    {
-        if (empty($this->id)) {
-            return [];
-        }
-
-        return [
-            'id' => $this->getId(),
-            'title' => $this->getTitle(),
-            'valid' => $this->getValid(),
-            'startTime' => $this->getStartTime()?->format('Y-m-d H:i:s'),
-            'expireTime' => $this->getExpireTime()?->format('Y-m-d H:i:s'),
-            'useTime' => $this->getUseTime()?->format('Y-m-d H:i:s'),
-            'prize' => $this->getPrize()?->retrievePlainArray(),
-            'consignee' => $this->getConsignee()?->retrievePlainArray(),
-            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
-            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
-            'remark' => $this->getRemark(),
-            'status' => $this->getStatus(),
-        ];
-    }
-
-    public function getRemark(): ?string
-    {
-        return $this->remark;
-    }
-
-    public function setRemark(?string $remark): static
-    {
-        $this->remark = $remark;
-
-        return $this;
-    }
-
-    public function getStatus(): ?ChanceStatusEnum
-    {
-        return $this->status;
-    }
-
-    public function setStatus(ChanceStatusEnum $status): static
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
+    // 审核相关
     public function getReviewTime(): ?string
     {
         return $this->reviewTime;
@@ -505,6 +414,20 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this;
     }
 
+    // 版本控制相关
+    public function getLockVersion(): ?int
+    {
+        return $this->lockVersion;
+    }
+
+    public function setLockVersion(?int $lockVersion): self
+    {
+        $this->lockVersion = $lockVersion;
+
+        return $this;
+    }
+
+    // 审计信息相关
     public function setCreatedBy(?string $createdBy): self
     {
         $this->createdBy = $createdBy;
@@ -551,5 +474,64 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         $this->updatedFromIp = $updatedFromIp;
 
         return $this;
+    }
+
+    public function setCreateTime(?\DateTimeInterface $createdAt): self
+    {
+        $this->createTime = $createdAt;
+
+        return $this;
+    }
+
+    public function getCreateTime(): ?\DateTimeInterface
+    {
+        return $this->createTime;
+    }
+
+    public function setUpdateTime(?\DateTimeInterface $updatedAt): self
+    {
+        $this->updateTime = $updatedAt;
+
+        return $this;
+    }
+
+    public function getUpdateTime(): ?\DateTimeInterface
+    {
+        return $this->updateTime;
+    }
+
+    public function retrieveApiArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'title' => $this->getTitle(),
+            'startTime' => $this->getStartTime()?->format('Y-m-d H:i:s'),
+            'expireTime' => $this->getExpireTime()?->format('Y-m-d H:i:s'),
+            'prize' => $this->getPrize()?->retrievePlainArray(),
+            'status' => $this->getStatus()?->value,
+        ];
+    }
+
+    public function retrievePlainArray(): array
+    {
+        return $this->retrieveApiArray();
+    }
+
+    public function retrieveAdminArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'title' => $this->getTitle(),
+            'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
+            'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
+            'startTime' => $this->getStartTime()?->format('Y-m-d H:i:s'),
+            'expireTime' => $this->getExpireTime()?->format('Y-m-d H:i:s'),
+            'useTime' => $this->getUseTime()?->format('Y-m-d H:i:s'),
+            'valid' => $this->getValid(),
+            'prize' => $this->getPrize()?->getName(),
+            'activity' => $this->getActivity()?->getTitle(),
+            'status' => $this->getStatus()?->value,
+            'remark' => $this->getRemark(),
+        ];
     }
 }

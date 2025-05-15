@@ -23,6 +23,10 @@ class Stock implements \Stringable
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
+    #[SnowflakeColumn]
+    #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '序列号'])]
+    private ?string $sn = null;
+
     #[ORM\ManyToOne(targetEntity: Prize::class, inversedBy: 'stocks')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Prize $prize = null;
@@ -30,21 +34,9 @@ class Stock implements \Stringable
     #[ORM\ManyToOne(targetEntity: Chance::class, inversedBy: 'stocks')]
     private ?Chance $chance = null;
 
-    #[SnowflakeColumn]
-    #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '序列号'])]
-    private ?string $sn = null;
-
     #[ORM\Version]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => 1, 'comment' => '乐观锁版本号'])]
     private ?int $lockVersion = null;
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     #[CreatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
@@ -53,6 +45,14 @@ class Stock implements \Stringable
     #[UpdatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
+
+    #[CreateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
+    private ?string $createdFromIp = null;
+
+    #[UpdateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
+    private ?string $updatedFromIp = null;
 
     #[IndexColumn]
     #[CreateTimeColumn]
@@ -71,6 +71,18 @@ class Stock implements \Stringable
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getSn(): ?string
+    {
+        return $this->sn;
+    }
+
+    public function setSn(string $sn): self
+    {
+        $this->sn = $sn;
+
+        return $this;
     }
 
     public function getPrize(): ?Prize
@@ -97,18 +109,6 @@ class Stock implements \Stringable
         return $this;
     }
 
-    public function getSn(): ?string
-    {
-        return $this->sn;
-    }
-
-    public function setSn(string $sn): self
-    {
-        $this->sn = $sn;
-
-        return $this;
-    }
-
     public function getLockVersion(): ?int
     {
         return $this->lockVersion;
@@ -117,30 +117,6 @@ class Stock implements \Stringable
     public function setLockVersion(?int $lockVersion): self
     {
         $this->lockVersion = $lockVersion;
-
-        return $this;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
 
         return $this;
     }
@@ -167,6 +143,30 @@ class Stock implements \Stringable
     public function getUpdatedBy(): ?string
     {
         return $this->updatedBy;
+    }
+
+    public function getCreatedFromIp(): ?string
+    {
+        return $this->createdFromIp;
+    }
+
+    public function setCreatedFromIp(?string $createdFromIp): self
+    {
+        $this->createdFromIp = $createdFromIp;
+
+        return $this;
+    }
+
+    public function getUpdatedFromIp(): ?string
+    {
+        return $this->updatedFromIp;
+    }
+
+    public function setUpdatedFromIp(?string $updatedFromIp): self
+    {
+        $this->updatedFromIp = $updatedFromIp;
+
+        return $this;
     }
 
     public function setCreateTime(?\DateTimeInterface $createdAt): void

@@ -1,0 +1,80 @@
+{# 奖品列表模板 #}
+<div class="field-collection">
+    <h4>奖品列表 ({{ field.value.count }}个)</h4>
+    
+    {% if field.value.count > 0 %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>类型</th>
+                        <th>概率</th>
+                        <th>数量</th>
+                        <th>每日限制</th>
+                        <th>是否有效</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for prize in field.value %}
+                    <tr>
+                        <td>{{ prize.id }}</td>
+                        <td>{{ prize.name }}</td>
+                        <td>{{ prize.type }}</td>
+                        <td>{{ prize.probability }}</td>
+                        <td>{{ prize.quantity }}</td>
+                        <td>{{ prize.dayLimit }}</td>
+                        <td>
+                            {% if prize.valid %}
+                                <span class="badge bg-success">有效</span>
+                            {% else %}
+                                <span class="badge bg-danger">无效</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ ea_url()
+                                    .setController('LotteryBundle\\Controller\\Admin\\PrizeCrudController')
+                                    .setAction('detail')
+                                    .setEntityId(prize.id)
+                                }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ ea_url()
+                                    .setController('LotteryBundle\\Controller\\Admin\\PrizeCrudController')
+                                    .setAction('edit')
+                                    .setEntityId(prize.id)
+                                }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-2">
+            <a href="{{ ea_url()
+                .setController('LotteryBundle\\Controller\\Admin\\PrizeCrudController')
+                .setAction('new')
+                .set('referrerPoolId', field.entity.instance.id)
+            }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> 添加奖品
+            </a>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            该奖池暂无奖品。
+            <a href="{{ ea_url()
+                .setController('LotteryBundle\\Controller\\Admin\\PrizeCrudController')
+                .setAction('new')
+                .set('referrerPoolId', field.entity.instance.id)
+            }}" class="btn btn-sm btn-success">
+                <i class="fas fa-plus"></i> 添加奖品
+            </a>
+        </div>
+    {% endif %}
+</div> 

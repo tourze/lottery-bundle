@@ -51,114 +51,6 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-    #[Filterable]
-    #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
-    #[ListColumn(order: 99, sorter: true)]
-    #[Filterable]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
-
-    public function setCreateTime(?\DateTimeInterface $createdAt): void
-    {
-        $this->createTime = $createdAt;
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): void
-    {
-        $this->updateTime = $updateTime;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    #[FormField(title: '分享路径')]
-    #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享路径'])]
-    private ?string $sharePath = null;
-
-    #[FormField(title: '分享标题')]
-    #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享标题'])]
-    private ?string $shareTitle = null;
-
-    #[ImagePickerField]
-    #[PictureColumn]
-    #[FormField(title: '分享图片')]
-    #[ORM\Column(length: 255, nullable: true, options: ['comment' => '分享图片'])]
-    private ?string $sharePicture = null;
-
-    public function getShareTitle(): ?string
-    {
-        return $this->shareTitle;
-    }
-
-    public function setShareTitle(?string $shareTitle): void
-    {
-        $this->shareTitle = $shareTitle;
-    }
-
-    public function getSharePicture(): ?string
-    {
-        return $this->sharePicture;
-    }
-
-    public function setSharePicture(?string $sharePicture): void
-    {
-        $this->sharePicture = $sharePicture;
-    }
-
-    public function getSharePath(): ?string
-    {
-        return $this->sharePath;
-    }
-
-    public function setSharePath(?string $sharePath): void
-    {
-        $this->sharePath = $sharePath;
-    }
-
-    public function retrieveWechatShareFriendConfig(): array
-    {
-        return [
-            'shareTitle' => $this->getShareTitle(),
-            'sharePicture' => $this->getSharePicture(),
-            'sharePath' => $this->getSharePath(),
-        ];
-    }
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
-
-    #[BoolColumn]
-    #[IndexColumn]
-    #[TrackColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
-    private ?bool $valid = false;
-
     #[FormField]
     #[Keyword]
     #[Groups(['restful_read'])]
@@ -180,7 +72,7 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
      * @var Collection<Chance>
      */
     #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'activity', targetEntity: Chance::class)]
+    #[ORM\OneToMany(targetEntity: Chance::class, mappedBy: 'activity')]
     private Collection $chances;
 
     /**
@@ -196,8 +88,22 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
      */
     #[ListColumn(title: '属性')]
     #[CurdAction(label: '属性', drawerWidth: 1000)]
-    #[ORM\OneToMany(mappedBy: 'activity', targetEntity: ActivityAttribute::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: ActivityAttribute::class, mappedBy: 'activity', orphanRemoval: true)]
     private Collection $attributes;
+
+    #[FormField(title: '分享路径')]
+    #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享路径'])]
+    private ?string $sharePath = null;
+
+    #[FormField(title: '分享标题')]
+    #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享标题'])]
+    private ?string $shareTitle = null;
+
+    #[ImagePickerField]
+    #[PictureColumn]
+    #[FormField(title: '分享图片')]
+    #[ORM\Column(length: 255, nullable: true, options: ['comment' => '分享图片'])]
+    private ?string $sharePicture = null;
 
     #[Filterable]
     #[FormField(span: 9)]
@@ -229,6 +135,22 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '找不到机会提醒文案'])]
     private ?string $noChanceText = '您已没有抽奖机会';
 
+    #[BoolColumn]
+    #[IndexColumn]
+    #[TrackColumn]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
+    #[ListColumn(order: 97)]
+    #[FormField(order: 97)]
+    private ?bool $valid = false;
+
+    #[CreatedByColumn]
+    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
+    private ?string $createdBy = null;
+
+    #[UpdatedByColumn]
+    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
+    private ?string $updatedBy = null;
+
     #[CreateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
     private ?string $createdFromIp = null;
@@ -236,6 +158,21 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     #[UpdateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
+
+    #[Filterable]
+    #[IndexColumn]
+    #[ListColumn(order: 98, sorter: true)]
+    #[ExportColumn]
+    #[CreateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
+    private ?\DateTimeInterface $createTime = null;
+
+    #[UpdateTimeColumn]
+    #[ListColumn(order: 99, sorter: true)]
+    #[Filterable]
+    #[ExportColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -253,40 +190,9 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->getTitle();
     }
 
-    public function setCreatedBy(?string $createdBy): self
+    public function getId(): ?int
     {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
-
-    public function isValid(): ?bool
-    {
-        return $this->valid;
-    }
-
-    public function setValid(?bool $valid): self
-    {
-        $this->valid = $valid;
-
-        return $this;
+        return $this->id;
     }
 
     /**
@@ -329,6 +235,36 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         $this->title = $title;
 
         return $this;
+    }
+
+    public function getShareTitle(): ?string
+    {
+        return $this->shareTitle;
+    }
+
+    public function setShareTitle(?string $shareTitle): void
+    {
+        $this->shareTitle = $shareTitle;
+    }
+
+    public function getSharePicture(): ?string
+    {
+        return $this->sharePicture;
+    }
+
+    public function setSharePicture(?string $sharePicture): void
+    {
+        $this->sharePicture = $sharePicture;
+    }
+
+    public function getSharePath(): ?string
+    {
+        return $this->sharePath;
+    }
+
+    public function setSharePath(?string $sharePath): void
+    {
+        $this->sharePath = $sharePath;
     }
 
     /**
@@ -500,6 +436,18 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->getTitle();
     }
 
+    public function isValid(): ?bool
+    {
+        return $this->valid;
+    }
+
+    public function setValid(?bool $valid): self
+    {
+        $this->valid = $valid;
+
+        return $this;
+    }
+
     public function setCreatedFromIp(?string $createdFromIp): self
     {
         $this->createdFromIp = $createdFromIp;
@@ -522,5 +470,49 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     public function getUpdatedFromIp(): ?string
     {
         return $this->updatedFromIp;
+    }
+
+    public function setCreatedBy(?string $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?string
+    {
+        return $this->createdBy;
+    }
+
+    public function setUpdatedBy(?string $updatedBy): self
+    {
+        $this->updatedBy = $updatedBy;
+
+        return $this;
+    }
+
+    public function getUpdatedBy(): ?string
+    {
+        return $this->updatedBy;
+    }
+
+    public function setCreateTime(?\DateTimeInterface $createdAt): void
+    {
+        $this->createTime = $createdAt;
+    }
+
+    public function getCreateTime(): ?\DateTimeInterface
+    {
+        return $this->createTime;
+    }
+
+    public function setUpdateTime(?\DateTimeInterface $updateTime): void
+    {
+        $this->updateTime = $updateTime;
+    }
+
+    public function getUpdateTime(): ?\DateTimeInterface
+    {
+        return $this->updateTime;
     }
 }

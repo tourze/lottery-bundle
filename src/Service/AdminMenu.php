@@ -25,6 +25,5 @@ class AdminMenu implements MenuProviderInterface
         $item->getChild('抽奖活动')->addChild('活动管理')->setUri($this->linkGenerator->getCurdListPage(Activity::class));
         $item->getChild('抽奖活动')->addChild('奖池管理')->setUri($this->linkGenerator->getCurdListPage(Pool::class));
         $item->getChild('抽奖活动')->addChild('机会管理')->setUri($this->linkGenerator->getCurdListPage(Chance::class));
-        $item->getChild('抽奖活动')->addChild('口令管理')->setUri($this->linkGenerator->getCurdListPage(Watchword::class));
     }
 }

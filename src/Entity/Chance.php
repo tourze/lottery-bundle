@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Enum\ChanceStatusEnum;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
@@ -22,86 +21,35 @@ use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '抽奖机会')]
-#[Deletable]
-#[Creatable]
-#[Exportable]
-#[BatchDeletable]
 #[ORM\Entity(repositoryClass: ChanceRepository::class)]
 #[ORM\Table(name: 'lottery_chance', options: ['comment' => '抽奖机会'])]
 class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterface, \Stringable, BenefitResource
 {
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    #[Filterable(label: '抽奖活动')]
-    #[FormField(title: '抽奖活动')]
-    #[ListColumn(title: '抽奖活动')]
     #[ORM\ManyToOne(targetEntity: Activity::class, cascade: ['persist'], inversedBy: 'chances')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Activity $activity = null;
 
-    #[ExportColumn]
-    #[Keyword]
-    #[Groups(['restful_read'])]
-    #[FormField]
-    #[ListColumn]
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '任务标题', 'default' => ''])]
     private ?string $title = '';
 
-    /**
-     * 如果这里为true，同时在开始时间开始收、失效时间结束前这个机会才能使用
-     * 在使用后，这个状态会变更为false.
-     */
-    #[Groups(['restful_read'])]
-    #[FormField]
-    #[ListColumn]
     #[IndexColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否有效'])]
-    private ?bool $valid = null;
-
-    #[IndexColumn]
-    #[Groups(['restful_read'])]
-    #[FormField]
-    #[ListColumn]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '开始时间'])]
     private ?\DateTimeInterface $startTime = null;
 
     #[IndexColumn]
-    #[Groups(['restful_read'])]
-    #[FormField]
-    #[ListColumn]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '失效时间'])]
     private ?\DateTimeInterface $expireTime = null;
 
-    #[Groups(['restful_read'])]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '使用时间'])]
     private ?\DateTimeInterface $useTime = null;
 
-    #[Groups(['restful_read'])]
-    #[FormField(title: '用户')]
-    #[Filterable(label: '用户')]
     #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?UserInterface $user = null;
@@ -109,8 +57,6 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     /**
      * 在机会消耗前，我们可以指定机会必中哪个奖池，做得更加灵活.
      */
-    #[ExportColumn]
-    #[ListColumn(title: '奖池')]
     #[ORM\ManyToOne(targetEntity: Pool::class)]
     private ?Pool $pool = null;
 
@@ -118,17 +64,11 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
      * 在机会被消耗前，我们就可以指定这次机会可以中什么奖品，可以更加灵活咯
      * 目前设计，一次抽奖只会抽中一个奖品，数量也是一
      */
-    #[ExportColumn]
-    #[Filterable(label: '奖品', inputWidth: 300)]
-    #[Groups(['restful_read'])]
-    #[ListColumn(title: '奖品')]
     #[ORM\ManyToOne(targetEntity: Prize::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Prize $prize = null;
 
-    #[Groups(['restful_read'])]
-    #[ListColumn(title: '收货信息')]
-    #[ORM\OneToOne(mappedBy: 'chance', targetEntity: Consignee::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: Consignee::class, mappedBy: 'chance', cascade: ['persist', 'remove'])]
     private ?Consignee $consignee = null;
 
     /**
@@ -136,10 +76,17 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
      *
      * @var Collection<Stock>
      */
-    #[ORM\OneToMany(mappedBy: 'chance', targetEntity: Stock::class)]
+    #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'chance')]
     private Collection $stocks;
 
-    #[ListColumn(title: '状态')]
+    /**
+     * 如果这里为true，同时在开始时间开始收、失效时间结束前这个机会才能使用
+     * 在使用后，这个状态会变更为false.
+     */
+    #[IndexColumn]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否有效'])]
+    private ?bool $valid = null;
+
     #[ORM\Column(length: 100, nullable: true, enumType: ChanceStatusEnum::class, options: ['comment' => '状态'])]
     private ?ChanceStatusEnum $status = ChanceStatusEnum::INIT;
 
@@ -160,28 +107,20 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     private ?int $lockVersion = null;
 
     #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
     #[CreateTimeColumn]
-    #[Groups(['restful_read', 'admin_curd', 'restful_read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '获取时间'])]
     private ?\DateTimeInterface $createTime = null;
 
     #[UpdateTimeColumn]
-    #[ListColumn(order: 99, sorter: true)]
-    #[Filterable]
-    #[ExportColumn]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '抽奖时间'])]
     private ?\DateTimeInterface $updateTime = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $remark = null;
 
-    #[ListColumn(order: 99, title: '审核人', sorter: true)]
     #[ORM\ManyToOne]
     private ?UserInterface $reviewUser = null;
 
-    #[ListColumn(order: 99, sorter: true)]
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '审核时间'])]
     private ?string $reviewTime = null;
 
@@ -215,43 +154,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return ClassUtils::getClass($this) . '-' . $this->getId();
     }
 
-    #[ListColumn(title: '用户')]
-    #[ExportColumn(title: '用户')]
-    public function getUserOpenId(): string
+    public function getId(): ?int
     {
-        if ($this->getUser()) {
-            if ($this->getUser()->getMobile()) {
-                return $this->getUser()->getMobile();
-            }
-
-            return $this->getUser()->getUsername();
-        }
-
-        return '';
-    }
-
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
+        return $this->id;
     }
 
     public function getActivity(): ?Activity
@@ -598,6 +503,30 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         $this->reviewUser = $reviewUser;
 
         return $this;
+    }
+
+    public function setCreatedBy(?string $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?string
+    {
+        return $this->createdBy;
+    }
+
+    public function setUpdatedBy(?string $updatedBy): self
+    {
+        $this->updatedBy = $updatedBy;
+
+        return $this;
+    }
+
+    public function getUpdatedBy(): ?string
+    {
+        return $this->updatedBy;
     }
 
     public function getCreatedFromIp(): ?string

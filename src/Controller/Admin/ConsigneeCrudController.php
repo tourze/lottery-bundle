@@ -37,7 +37,7 @@ class ConsigneeCrudController extends AbstractCrudController
             ->setPageTitle('detail', fn (Consignee $consignee) => sprintf('收货详情: #%s', $consignee->getId()))
             ->setHelp('index', '这里列出了所有的收货信息')
             ->setDefaultSort(['id' => 'DESC'])
-            ->setSearchFields(['id', 'realName', 'mobile', 'province', 'city', 'district', 'address']);
+            ->setSearchFields(['id', 'realName', 'mobile', 'address']);
     }
     
     public function configureFields(string $pageName): iterable
@@ -59,23 +59,18 @@ class ConsigneeCrudController extends AbstractCrudController
             ->setRequired(true);
             
         // 地址信息
-        yield TextField::new('province', '省份')
-            ->setRequired(true);
-            
-        yield TextField::new('city', '城市')
-            ->setRequired(true);
-            
-        yield TextField::new('district', '区县')
-            ->setRequired(true);
-            
         yield TextField::new('address', '详细地址')
             ->setRequired(true);
             
-        yield TextField::new('zipcode', '邮编')
-            ->hideOnIndex()
-            ->setRequired(false);
-            
         // 审计信息
+        yield TextField::new('createdBy', '创建人')
+            ->hideOnForm()
+            ->hideOnIndex();
+            
+        yield TextField::new('updatedBy', '更新人')
+            ->hideOnForm()
+            ->hideOnIndex();
+            
         yield DateTimeField::new('createTime', '创建时间')
             ->hideOnForm()
             ->setFormat('yyyy-MM-dd HH:mm:ss');
@@ -100,8 +95,6 @@ class ConsigneeCrudController extends AbstractCrudController
             ->add(EntityFilter::new('chance', '关联抽奖机会'))
             ->add(TextFilter::new('realName', '收货人姓名'))
             ->add(TextFilter::new('mobile', '手机号'))
-            ->add(TextFilter::new('province', '省份'))
-            ->add(TextFilter::new('city', '城市'))
-            ->add(TextFilter::new('district', '区县'));
+            ->add(TextFilter::new('address', '详细地址'));
     }
 }

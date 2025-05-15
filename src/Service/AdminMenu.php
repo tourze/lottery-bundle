@@ -6,7 +6,6 @@ use Knp\Menu\ItemInterface;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Pool;
-use LotteryBundle\Entity\Watchword;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
 use Tourze\EasyAdminMenuBundle\Service\MenuProviderInterface;
 

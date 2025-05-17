@@ -64,6 +64,7 @@
     "tourze/user-id-bundle": "0.1.*"
   },
   "require-dev": {
+    "fakerphp/faker": "^1.23",
     "maglnet/composer-require-checker": "^4",
     "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^10.0"

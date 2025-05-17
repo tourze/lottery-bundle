@@ -73,5 +73,10 @@
     "psr-4": {
       "LotteryBundle\\": "src"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "LotteryBundle\\Tests\\": "tests"
+    }
   }
 }

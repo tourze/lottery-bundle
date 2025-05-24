@@ -1,0 +1,367 @@
+{% extends '@Lottery/h5/base.html.twig' %}
+
+{% block title %}中奖记录 - 抽奖活动{% endblock %}
+
+{% block extra_styles %}
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #2c3e50;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.back-button:hover {
+    background: white;
+    transform: translateY(-1px);
+}
+
+.record-item {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.record-prize-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.record-info {
+    flex: 1;
+}
+
+.record-prize-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.record-time {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+}
+
+.record-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.status-winning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-sent {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-reviewed {
+    background: #cce7ff;
+    color: #004085;
+}
+
+.status-expired {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #7f8c8d;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.empty-desc {
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 40px;
+    display: none;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #FF6B6B;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+.filter-tabs {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.filter-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    background: none;
+    border: none;
+    color: #7f8c8d;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+    background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.action-button {
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.action-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(76, 205, 196, 0.4);
+}
+{% endblock %}
+
+{% block content %}
+<button class="back-button" onclick="history.back()">←</button>
+
+<div class="fade-in">
+    <div class="card">
+        <h2 class="text-center mb-4">🏆 我的中奖记录</h2>
+        
+        <!-- 筛选标签 -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-status="all">全部</button>
+            <button class="filter-tab" data-status="winning">已中奖</button>
+            <button class="filter-tab" data-status="sent">已发奖</button>
+            <button class="filter-tab" data-status="expired">已过期</button>
+        </div>
+        
+        <!-- 加载状态 -->
+        <div class="loading-state" id="loadingState">
+            <div class="loading-spinner"></div>
+            <div>正在加载中奖记录...</div>
+        </div>
+        
+        <!-- 记录列表 -->
+        <div id="recordsList">
+            <!-- 记录将通过JavaScript动态加载 -->
+        </div>
+        
+        <!-- 空状态 -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">🎲</div>
+            <div class="empty-title">暂无中奖记录</div>
+            <div class="empty-desc">快去参与抽奖活动吧！</div>
+            <button class="btn btn-primary" onclick="history.back()">返回抽奖</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+const activityId = new URLSearchParams(window.location.search).get('activity_id');
+let allRecords = [];
+let currentFilter = 'all';
+
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadRecords();
+    setupFilterTabs();
+});
+
+// 加载中奖记录
+async function loadRecords() {
+    const loadingState = document.getElementById('loadingState');
+    const recordsList = document.getElementById('recordsList');
+    const emptyState = document.getElementById('emptyState');
+    
+    loadingState.style.display = 'block';
+    recordsList.innerHTML = '';
+    emptyState.style.display = 'none';
+    
+    try {
+        const response = await fetch('/json-rpc', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'GetUserLotteryChanceList',
+                params: activityId ? {
+                    activityId: activityId
+                } : {},
+                id: 1
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.result && data.result.chances) {
+            allRecords = data.result.chances;
+            renderRecords();
+        } else {
+            showEmptyState();
+        }
+    } catch (error) {
+        console.error('加载中奖记录失败:', error);
+        LotteryUtils.showToast('获取记录失败', 'error');
+        showEmptyState();
+    } finally {
+        loadingState.style.display = 'none';
+    }
+}
+
+// 渲染记录列表
+function renderRecords() {
+    const recordsList = document.getElementById('recordsList');
+    const emptyState = document.getElementById('emptyState');
+    
+    // 根据当前筛选条件过滤记录
+    let filteredRecords = allRecords;
+    if (currentFilter !== 'all') {
+        filteredRecords = allRecords.filter(record => record.status === currentFilter);
+    }
+    
+    if (filteredRecords.length === 0) {
+        recordsList.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    recordsList.innerHTML = '';
+    
+    filteredRecords.forEach(record => {
+        const item = document.createElement('div');
+        item.className = 'record-item';
+        
+        const prize = record.prize;
+        const statusText = getStatusText(record.status);
+        const statusClass = getStatusClass(record.status);
+        
+        item.innerHTML = `
+            ${prize && prize.picture ? 
+                `<img src="${prize.picture}" alt="${prize.name}" class="record-prize-image">` : 
+                '<div class="record-prize-image" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎁</div>'
+            }
+            <div class="record-info">
+                <div class="record-prize-name">${prize ? prize.name : '未中奖'}</div>
+                <div class="record-time">${LotteryUtils.formatTime(record.useTime || record.createTime)}</div>
+                <span class="record-status ${statusClass}">${statusText}</span>
+                ${record.status === 'winning' && prize && prize.needConsignee ? 
+                    `<button class="action-button" onclick="fillAddress('${record.id}')">填写地址</button>` : 
+                    ''
+                }
+            </div>
+        `;
+        
+        recordsList.appendChild(item);
+    });
+}
+
+// 显示空状态
+function showEmptyState() {
+    document.getElementById('recordsList').innerHTML = '';
+    document.getElementById('emptyState').style.display = 'block';
+}
+
+// 获取状态文本
+function getStatusText(status) {
+    const statusMap = {
+        'init': '未使用',
+        'winning': '已中奖',
+        'reviewed': '已审核',
+        'sent': '已发奖',
+        'expired': '已过期'
+    };
+    return statusMap[status] || '未知状态';
+}
+
+// 获取状态样式类
+function getStatusClass(status) {
+    const classMap = {
+        'init': 'status-init',
+        'winning': 'status-winning',
+        'reviewed': 'status-reviewed',
+        'sent': 'status-sent',
+        'expired': 'status-expired'
+    };
+    return classMap[status] || '';
+}
+
+// 设置筛选标签
+function setupFilterTabs() {
+    const tabs = document.querySelectorAll('.filter-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // 移除所有活跃状态
+            tabs.forEach(t => t.classList.remove('active'));
+            // 添加当前活跃状态
+            this.classList.add('active');
+            
+            // 更新筛选条件
+            currentFilter = this.dataset.status;
+            renderRecords();
+        });
+    });
+}
+
+// 填写收货地址
+function fillAddress(chanceId) {
+    const addressUrl = `/h5/lottery/address?chance_id=${chanceId}`;
+    window.location.href = addressUrl;
+}
+{% endblock %} 

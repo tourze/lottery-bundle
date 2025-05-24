@@ -1,0 +1,599 @@
+{% extends '@Lottery/h5/base.html.twig' %}
+
+{% block title %}{{ activity.title }} - 抽奖活动{% endblock %}
+
+{% block extra_styles %}
+/* 活动头部样式 */
+.activity-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.activity-banner {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+.activity-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.activity-time {
+    font-size: 14px;
+    color: #7f8c8d;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+/* 用户信息区域 */
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    color: white;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.user-info .chances {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.user-info .chances .number {
+    font-size: 24px;
+    color: #fff200;
+}
+
+/* 奖品展示区域 */
+.prizes-section {
+    margin-bottom: 30px;
+}
+
+.prizes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.prize-item {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.prize-item:hover {
+    transform: translateY(-2px);
+}
+
+.prize-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.prize-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.prize-desc {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+/* 抽奖转盘样式 */
+.lottery-wheel {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+}
+
+.wheel-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.wheel-sector {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    transform-origin: right bottom;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid #ff4757;
+    z-index: 10;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+    border-radius: 50%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* 抽奖按钮 */
+.lottery-button {
+    width: 200px;
+    height: 60px;
+    font-size: 18px;
+    margin: 20px auto;
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+.lottery-button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+}
+
+.lottery-button:hover:before {
+    left: 100%;
+}
+
+/* 操作按钮组 */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.action-buttons .btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+}
+
+/* 中奖结果弹窗 */
+.result-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.result-modal.show {
+    display: flex;
+}
+
+.result-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 320px;
+    margin: 20px;
+    animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.result-prize-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 15px;
+}
+
+.result-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 10px;
+}
+
+.result-prize-name {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.result-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.result-buttons .btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- 活动头部 -->
+    <div class="activity-header">
+        {% if activity.headPhoto %}
+        <img src="{{ activity.headPhoto }}" alt="{{ activity.title }}" class="activity-banner">
+        {% endif %}
+        <h1 class="activity-title">{{ activity.title }}</h1>
+        <div class="activity-time">
+            活动时间：{{ activity.startTime|date('m-d H:i') }} 至 {{ activity.endTime|date('m-d H:i') }}
+        </div>
+    </div>
+
+    <!-- 用户信息 -->
+    <div class="user-info">
+        <div>
+            <div>剩余抽奖次数</div>
+            <div class="chances">
+                <span class="number" id="userChances">-</span> 次
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-secondary" onclick="showRecords()">我的记录</button>
+        </div>
+    </div>
+
+    <!-- 奖品展示 -->
+    <div class="card prizes-section">
+        <h3 class="text-center mb-3">🎁 丰厚奖品等你来拿</h3>
+        <div class="prizes-grid" id="prizesGrid">
+            <!-- 奖品列表将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <!-- 抽奖转盘 -->
+    <div class="card text-center">
+        <h3 class="mb-3">🎯 立即抽奖</h3>
+        <div class="lottery-wheel">
+            <div class="wheel-pointer"></div>
+            <div class="wheel-container">
+                <div class="wheel" id="lotteryWheel">
+                    <!-- 转盘扇形将通过JavaScript动态生成 -->
+                </div>
+                <div class="wheel-center">开始</div>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary lottery-button" id="lotteryBtn" onclick="startLottery()">
+            <span id="btnText">立即抽奖</span>
+            <span id="btnLoading" class="loading" style="display: none;"></span>
+        </button>
+        
+        <div class="action-buttons">
+            <a href="{{ path('h5_lottery_rules', {activity_id: activity.id}) }}" class="btn btn-secondary">活动规则</a>
+            <button class="btn btn-secondary" onclick="showRecords()">中奖记录</button>
+        </div>
+    </div>
+</div>
+
+<!-- 中奖结果弹窗 -->
+<div class="result-modal" id="resultModal">
+    <div class="result-content">
+        <div id="resultContent">
+            <!-- 结果内容将通过JavaScript动态填充 -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+// 页面数据
+const activityId = {{ activity.id }};
+let userChances = 0;
+let prizes = [];
+let isLotteryRunning = false;
+
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserChances();
+    loadPrizes();
+});
+
+// 加载用户抽奖次数
+async function loadUserChances() {
+    try {
+        const response = await fetch('/json-rpc', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'GetUserValidLotteryChanceCounts',
+                params: {
+                    activityId: activityId.toString()
+                },
+                id: 1
+            })
+        });
+        
+        const data = await response.json();
+        if (data.result) {
+            userChances = data.result.count || 0;
+            document.getElementById('userChances').textContent = userChances;
+            
+            // 更新抽奖按钮状态
+            updateLotteryButton();
+        }
+    } catch (error) {
+        console.error('加载用户抽奖次数失败:', error);
+        LotteryUtils.showToast('获取抽奖次数失败', 'error');
+    }
+}
+
+// 加载奖品列表
+async function loadPrizes() {
+    try {
+        const response = await fetch('/json-rpc', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'GetLotteryPrizeList',
+                params: {
+                    activityId: activityId.toString()
+                },
+                id: 2
+            })
+        });
+        
+        const data = await response.json();
+        if (data.result && data.result.prizes) {
+            prizes = data.result.prizes;
+            renderPrizes();
+            renderWheel();
+        }
+    } catch (error) {
+        console.error('加载奖品列表失败:', error);
+        LotteryUtils.showToast('获取奖品列表失败', 'error');
+    }
+}
+
+// 渲染奖品列表
+function renderPrizes() {
+    const grid = document.getElementById('prizesGrid');
+    grid.innerHTML = '';
+    
+    prizes.forEach(prize => {
+        const item = document.createElement('div');
+        item.className = 'prize-item';
+        item.innerHTML = `
+            ${prize.picture ? `<img src="${prize.picture}" alt="${prize.name}" class="prize-image">` : '<div class="prize-image" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎁</div>'}
+            <div class="prize-name">${prize.name}</div>
+            <div class="prize-desc">${prize.content || ''}</div>
+        `;
+        grid.appendChild(item);
+    });
+}
+
+// 渲染转盘
+function renderWheel() {
+    const wheel = document.getElementById('lotteryWheel');
+    wheel.innerHTML = '';
+    
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD'];
+    const sectorAngle = 360 / prizes.length;
+    
+    prizes.forEach((prize, index) => {
+        const sector = document.createElement('div');
+        sector.className = 'wheel-sector';
+        sector.style.background = colors[index % colors.length];
+        sector.style.transform = `rotate(${index * sectorAngle}deg)`;
+        sector.style.clipPath = `polygon(0% 100%, 0% 0%, ${Math.tan((sectorAngle * Math.PI) / 360) * 100}% 100%)`;
+        sector.textContent = prize.name;
+        wheel.appendChild(sector);
+    });
+}
+
+// 更新抽奖按钮状态
+function updateLotteryButton() {
+    const btn = document.getElementById('lotteryBtn');
+    const btnText = document.getElementById('btnText');
+    
+    if (userChances <= 0) {
+        btn.disabled = true;
+        btn.className = 'btn btn-disabled lottery-button';
+        btnText.textContent = '暂无抽奖次数';
+    } else {
+        btn.disabled = false;
+        btn.className = 'btn btn-primary lottery-button';
+        btnText.textContent = '立即抽奖';
+    }
+}
+
+// 开始抽奖
+async function startLottery() {
+    if (isLotteryRunning || userChances <= 0) {
+        return;
+    }
+    
+    isLotteryRunning = true;
+    const btn = document.getElementById('lotteryBtn');
+    const btnText = document.getElementById('btnText');
+    const btnLoading = document.getElementById('btnLoading');
+    
+    // 更新按钮状态
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
+    
+    try {
+        // 调用抽奖接口
+        const response = await fetch('/json-rpc', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'JoinLottery',
+                params: {
+                    activityId: activityId.toString()
+                },
+                id: 3
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.result) {
+            // 抽奖成功，开始转盘动画
+            const prize = data.result.prize;
+            const prizeIndex = prizes.findIndex(p => p.id === prize.id);
+            
+            if (prizeIndex !== -1) {
+                // 计算转盘角度
+                const sectorAngle = 360 / prizes.length;
+                const targetAngle = 360 * 5 + (prizeIndex * sectorAngle) + (sectorAngle / 2); // 转5圈后停在目标位置
+                
+                // 执行转盘动画
+                const wheel = document.getElementById('lotteryWheel');
+                wheel.style.transform = `rotate(${targetAngle}deg)`;
+                
+                // 动画完成后显示结果
+                setTimeout(() => {
+                    showResult(data.result);
+                    userChances--;
+                    document.getElementById('userChances').textContent = userChances;
+                    updateLotteryButton();
+                    isLotteryRunning = false;
+                }, 3000);
+            } else {
+                // 找不到对应奖品
+                LotteryUtils.showToast('抽奖结果异常', 'error');
+                isLotteryRunning = false;
+            }
+        } else {
+            // 抽奖失败
+            LotteryUtils.showToast(data.error?.message || '抽奖失败', 'error');
+            isLotteryRunning = false;
+        }
+    } catch (error) {
+        console.error('抽奖请求失败:', error);
+        LotteryUtils.showToast('抽奖请求失败，请稍后重试', 'error');
+        isLotteryRunning = false;
+    } finally {
+        // 恢复按钮状态
+        btnText.style.display = 'inline-block';
+        btnLoading.style.display = 'none';
+        btn.disabled = false;
+    }
+}
+
+// 显示抽奖结果
+function showResult(result) {
+    const modal = document.getElementById('resultModal');
+    const content = document.getElementById('resultContent');
+    
+    const prize = result.prize;
+    const isWin = prize && prize.name !== '谢谢参与' && prize.name !== '安慰奖';
+    
+    content.innerHTML = `
+        <div class="result-title">${isWin ? '🎉 恭喜中奖！' : '😊 再接再厉'}</div>
+        ${prize.picture ? `<img src="${prize.picture}" alt="${prize.name}" class="result-prize-image">` : '<div class="result-prize-image" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 40px;">🎁</div>'}
+        <div class="result-prize-name">${prize.name}</div>
+        ${prize.content ? `<div class="text-muted">${prize.content}</div>` : ''}
+        <div class="result-buttons">
+            ${isWin && prize.needConsignee ? `<button class="btn btn-primary" onclick="fillAddress('${result.chanceId}')">填写地址</button>` : ''}
+            <button class="btn btn-secondary" onclick="closeResult()">继续抽奖</button>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+}
+
+// 关闭结果弹窗
+function closeResult() {
+    document.getElementById('resultModal').classList.remove('show');
+}
+
+// 填写收货地址
+function fillAddress(chanceId) {
+    window.location.href = `{{ path('h5_lottery_address') }}?chance_id=${chanceId}`;
+}
+
+// 查看中奖记录
+function showRecords() {
+    window.location.href = `{{ path('h5_lottery_records') }}?activity_id=${activityId}`;
+}
+
+// 点击弹窗外部关闭
+document.getElementById('resultModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeResult();
+    }
+});
+{% endblock %} 

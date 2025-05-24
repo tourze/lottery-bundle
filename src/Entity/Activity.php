@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Repository\ActivityRepository;
-use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
@@ -31,27 +30,21 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     private ?int $id = 0;
 
     // 基本信息
-    #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 120, unique: true, options: ['comment' => '标题'])]
     private string $title = '';
 
-    #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '规则文本'])]
     private ?string $textRule = null;
 
-    #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '开始时间'])]
     private ?\DateTimeInterface $startTime = null;
 
-    #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '结束时间'])]
     private ?\DateTimeInterface $endTime = null;
 
-    #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后兑奖时间'])]
     private ?\DateTimeInterface $lastRedeemTime = null;
     
-    #[Groups(['admin_curd', 'restful_read'])]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '头图'])]
     private ?string $headPhoto = null;
 

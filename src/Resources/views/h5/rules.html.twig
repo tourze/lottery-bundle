@@ -1,0 +1,222 @@
+{% extends '@Lottery/h5/base.html.twig' %}
+
+{% block title %}活动规则 - {{ activity.title }}{% endblock %}
+
+{% block extra_styles %}
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #2c3e50;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.back-button:hover {
+    background: white;
+    transform: translateY(-1px);
+}
+
+.rule-section {
+    margin-bottom: 25px;
+}
+
+.rule-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #FF6B6B;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rule-content {
+    color: #444;
+    line-height: 1.8;
+}
+
+.rule-list {
+    list-style: none;
+    padding: 0;
+}
+
+.rule-list li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.rule-list li:before {
+    content: "•";
+    color: #FF6B6B;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.activity-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.info-label {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.highlight-text {
+    background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.warning-title {
+    color: #856404;
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.warning-content {
+    color: #856404;
+    font-size: 14px;
+    line-height: 1.6;
+}
+{% endblock %}
+
+{% block content %}
+<button class="back-button" onclick="history.back()">←</button>
+
+<div class="fade-in">
+    <div class="card">
+        <h2 class="text-center mb-4">📋 {{ activity.title }}</h2>
+        <p class="text-center text-muted mb-4">活动规则详情</p>
+        
+        <!-- 活动基本信息 -->
+        <div class="activity-info-grid">
+            <div class="info-item">
+                <div class="info-label">活动开始</div>
+                <div class="info-value">{{ activity.startTime|date('m-d H:i') }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">活动结束</div>
+                <div class="info-value">{{ activity.endTime|date('m-d H:i') }}</div>
+            </div>
+            {% if activity.lastRedeemTime %}
+            <div class="info-item">
+                <div class="info-label">兑奖截止</div>
+                <div class="info-value">{{ activity.lastRedeemTime|date('m-d H:i') }}</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if activity.textRule %}
+        <!-- 活动规则文本 -->
+        <div class="rule-section">
+            <h3 class="rule-title">
+                📖 活动详情
+            </h3>
+            <div class="rule-content">
+                {{ activity.textRule|nl2br }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- 参与规则 -->
+        <div class="rule-section">
+            <h3 class="rule-title">
+                🎯 参与规则
+            </h3>
+            <ul class="rule-list">
+                <li>每个用户每天可获得一定数量的抽奖机会</li>
+                <li>抽奖机会有有效期限制，过期后将自动失效</li>
+                <li>每次抽奖消耗一个抽奖机会，无论是否中奖</li>
+                <li>中奖结果立即生效，用户可查看中奖记录</li>
+                <li>实物奖品需要填写收货地址信息</li>
+            </ul>
+        </div>
+        
+        <!-- 奖品说明 -->
+        <div class="rule-section">
+            <h3 class="rule-title">
+                🎁 奖品说明
+            </h3>
+            <ul class="rule-list">
+                <li><span class="highlight-text">虚拟奖品</span>：优惠券、积分等，中奖后自动发放到账户</li>
+                <li><span class="highlight-text">实物奖品</span>：需要填写收货地址，我们将安排快递配送</li>
+                <li>部分奖品可能需要人工审核，请耐心等待</li>
+                <li>奖品发放后不支持退换，请确认收货信息准确</li>
+            </ul>
+        </div>
+        
+        <!-- 重要提醒 -->
+        <div class="warning-box">
+            <div class="warning-title">
+                ⚠️ 重要提醒
+            </div>
+            <div class="warning-content">
+                • 请确保填写的收货信息真实有效，因信息错误导致的配送失败由用户自行承担<br>
+                • 中奖用户请保持手机畅通，我们可能会联系您确认配送信息<br>
+                • 活动最终解释权归主办方所有
+            </div>
+        </div>
+        
+        <!-- 联系方式 -->
+        <div class="rule-section">
+            <h3 class="rule-title">
+                📞 联系我们
+            </h3>
+            <div class="rule-content">
+                如有疑问，请通过以下方式联系我们：<br>
+                客服电话：400-xxx-xxxx<br>
+                工作时间：周一至周五 9:00-18:00
+            </div>
+        </div>
+        
+        <div class="text-center" style="margin-top: 30px;">
+            <button class="btn btn-primary" onclick="history.back()">返回抽奖</button>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,316 @@
+{% extends '@Lottery/h5/base.html.twig' %}
+
+{% block title %}填写收货地址 - 抽奖活动{% endblock %}
+
+{% block extra_styles %}
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 16px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #FF6B6B;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.form-control.error {
+    border-color: #e74c3c;
+    background: #fdf2f2;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #2c3e50;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.back-button:hover {
+    background: white;
+    transform: translateY(-1px);
+}
+
+.success-message {
+    text-align: center;
+    padding: 40px 20px;
+    display: none;
+}
+
+.success-icon {
+    font-size: 64px;
+    color: #27ae60;
+    margin-bottom: 20px;
+}
+
+.success-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.success-desc {
+    color: #7f8c8d;
+    margin-bottom: 30px;
+}
+{% endblock %}
+
+{% block content %}
+<button class="back-button" onclick="history.back()">←</button>
+
+<div class="fade-in">
+    <div class="card" id="addressForm">
+        <h2 class="text-center mb-4">📦 填写收货地址</h2>
+        <p class="text-center text-muted mb-4">请填写准确的收货信息，以便我们为您配送奖品</p>
+        
+        <form id="consigneeForm">
+            <div class="form-group">
+                <label class="form-label" for="realName">收货人姓名 *</label>
+                <input type="text" id="realName" name="realName" class="form-control" 
+                       placeholder="请输入收货人真实姓名" maxlength="50" required>
+                <div class="error-message" id="realNameError">请输入收货人姓名</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="mobile">手机号码 *</label>
+                <input type="tel" id="mobile" name="mobile" class="form-control" 
+                       placeholder="请输入11位手机号码" maxlength="11" required>
+                <div class="error-message" id="mobileError">请输入正确的手机号码</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="address">详细地址 *</label>
+                <textarea id="address" name="address" class="form-control" rows="3" 
+                          placeholder="请输入详细的收货地址（省市区县/街道/小区/门牌号等）" 
+                          maxlength="200" required></textarea>
+                <div class="error-message" id="addressError">请输入详细地址</div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary submit-button" id="submitBtn">
+                <span id="submitText">确认提交</span>
+                <span id="submitLoading" class="loading" style="display: none;"></span>
+            </button>
+        </form>
+    </div>
+    
+    <div class="card success-message" id="successMessage">
+        <div class="success-icon">✅</div>
+        <div class="success-title">地址提交成功！</div>
+        <div class="success-desc">我们将尽快为您安排发货，请保持手机畅通</div>
+        <button class="btn btn-primary" onclick="history.back()">返回抽奖</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+const chanceId = new URLSearchParams(window.location.search).get('chance_id');
+
+if (!chanceId) {
+    LotteryUtils.showToast('缺少必要参数', 'error');
+    setTimeout(() => history.back(), 2000);
+}
+
+// 表单提交处理
+document.getElementById('consigneeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitLoading = document.getElementById('submitLoading');
+    
+    // 禁用提交按钮
+    submitBtn.disabled = true;
+    submitText.style.display = 'none';
+    submitLoading.style.display = 'inline-block';
+    
+    try {
+        const formData = {
+            chanceId: chanceId,
+            realName: document.getElementById('realName').value.trim(),
+            mobile: document.getElementById('mobile').value.trim(),
+            address: document.getElementById('address').value.trim()
+        };
+        
+        const response = await fetch('/json-rpc', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'SaveOrUpdateLotteryConsignee',
+                params: formData,
+                id: 1
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.result && data.result.success) {
+            // 提交成功
+            document.getElementById('addressForm').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+        } else {
+            // 提交失败
+            LotteryUtils.showToast(data.error?.message || '提交失败', 'error');
+        }
+    } catch (error) {
+        console.error('提交地址失败:', error);
+        LotteryUtils.showToast('网络错误，请稍后重试', 'error');
+    } finally {
+        // 恢复提交按钮
+        submitBtn.disabled = false;
+        submitText.style.display = 'inline-block';
+        submitLoading.style.display = 'none';
+    }
+});
+
+// 表单验证
+function validateForm() {
+    let isValid = true;
+    
+    // 验证姓名
+    const realName = document.getElementById('realName');
+    const realNameError = document.getElementById('realNameError');
+    if (!realName.value.trim()) {
+        showFieldError(realName, realNameError, '请输入收货人姓名');
+        isValid = false;
+    } else if (realName.value.trim().length < 2) {
+        showFieldError(realName, realNameError, '姓名至少需要2个字符');
+        isValid = false;
+    } else {
+        hideFieldError(realName, realNameError);
+    }
+    
+    // 验证手机号
+    const mobile = document.getElementById('mobile');
+    const mobileError = document.getElementById('mobileError');
+    const mobilePattern = /^1[3-9]\d{9}$/;
+    if (!mobile.value.trim()) {
+        showFieldError(mobile, mobileError, '请输入手机号码');
+        isValid = false;
+    } else if (!mobilePattern.test(mobile.value.trim())) {
+        showFieldError(mobile, mobileError, '请输入正确的手机号码');
+        isValid = false;
+    } else {
+        hideFieldError(mobile, mobileError);
+    }
+    
+    // 验证地址
+    const address = document.getElementById('address');
+    const addressError = document.getElementById('addressError');
+    if (!address.value.trim()) {
+        showFieldError(address, addressError, '请输入详细地址');
+        isValid = false;
+    } else if (address.value.trim().length < 10) {
+        showFieldError(address, addressError, '地址信息过于简单，请填写详细地址');
+        isValid = false;
+    } else {
+        hideFieldError(address, addressError);
+    }
+    
+    return isValid;
+}
+
+// 显示字段错误
+function showFieldError(field, errorElement, message) {
+    field.classList.add('error');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+}
+
+// 隐藏字段错误
+function hideFieldError(field, errorElement) {
+    field.classList.remove('error');
+    errorElement.style.display = 'none';
+}
+
+// 实时验证
+document.getElementById('realName').addEventListener('blur', function() {
+    const realNameError = document.getElementById('realNameError');
+    if (!this.value.trim()) {
+        showFieldError(this, realNameError, '请输入收货人姓名');
+    } else if (this.value.trim().length < 2) {
+        showFieldError(this, realNameError, '姓名至少需要2个字符');
+    } else {
+        hideFieldError(this, realNameError);
+    }
+});
+
+document.getElementById('mobile').addEventListener('blur', function() {
+    const mobileError = document.getElementById('mobileError');
+    const mobilePattern = /^1[3-9]\d{9}$/;
+    if (!this.value.trim()) {
+        showFieldError(this, mobileError, '请输入手机号码');
+    } else if (!mobilePattern.test(this.value.trim())) {
+        showFieldError(this, mobileError, '请输入正确的手机号码');
+    } else {
+        hideFieldError(this, mobileError);
+    }
+});
+
+document.getElementById('address').addEventListener('blur', function() {
+    const addressError = document.getElementById('addressError');
+    if (!this.value.trim()) {
+        showFieldError(this, addressError, '请输入详细地址');
+    } else if (this.value.trim().length < 10) {
+        showFieldError(this, addressError, '地址信息过于简单，请填写详细地址');
+    } else {
+        hideFieldError(this, addressError);
+    }
+});
+
+// 限制手机号只能输入数字
+document.getElementById('mobile').addEventListener('input', function() {
+    this.value = this.value.replace(/[^\d]/g, '');
+});
+{% endblock %} 

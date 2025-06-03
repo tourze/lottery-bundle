@@ -39,7 +39,7 @@
     "symfony/yaml": "^6.4 || ^7.1",
     "tourze/arrayable": "0.0.*",
     "tourze/async-contracts": "0.0.*",
-    "tourze/backtrace-helper": "~0.0.5",
+    "tourze/backtrace-helper": "0.1.*",
     "tourze/benifit-bundle": "0.0.*",
     "tourze/bundle-dependency": "0.0.*",
     "tourze/doctrine-helper": "0.0.*",

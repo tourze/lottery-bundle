@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Message;
 
-use Tourze\Symfony\Async\Message\AsyncMessageInterface;
+use Tourze\AsyncContracts\AsyncMessageInterface;
 
 /**
  * 异步发送奖励

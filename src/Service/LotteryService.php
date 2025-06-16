@@ -210,7 +210,7 @@ class LotteryService
             ->setParameter('user', $user)
             ->setParameter('activity', $activity)
             ->getQuery()
-            ->getScalarResult();
+            ->getSingleScalarResult();
 
         return intval($c);
     }

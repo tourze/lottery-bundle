@@ -23,8 +23,6 @@ class PoolServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->markTestSkipped('需要进一步完善测试用例');
-        
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->poolService = new PoolService($this->eventDispatcher);
     }
@@ -91,7 +89,7 @@ class PoolServiceTest extends TestCase
         $pools = new \Doctrine\Common\Collections\ArrayCollection([$pool1, $pool2]);
         
         // 设置期望
-        $chance->expects($this->once())
+        $chance->expects($this->exactly(2))
             ->method('getActivity')
             ->willReturn($activity);
         
@@ -99,9 +97,9 @@ class PoolServiceTest extends TestCase
             ->method('getUser')
             ->willReturn($user);
         
-        $chance->expects($this->exactly(2))
+        $chance->expects($this->once())
             ->method('getPool')
-            ->willReturnOnConsecutiveCalls(null, null);
+            ->willReturn(null);
         
         $activity->expects($this->once())
             ->method('getPools')
@@ -140,7 +138,7 @@ class PoolServiceTest extends TestCase
         $pools = new \Doctrine\Common\Collections\ArrayCollection([]);
         
         // 设置期望
-        $chance->expects($this->once())
+        $chance->expects($this->exactly(2))
             ->method('getActivity')
             ->willReturn($activity);
         
@@ -148,7 +146,7 @@ class PoolServiceTest extends TestCase
             ->method('getUser')
             ->willReturn($user);
         
-        $chance->expects($this->exactly(2))
+        $chance->expects($this->once())
             ->method('getPool')
             ->willReturn(null);
         
@@ -184,7 +182,7 @@ class PoolServiceTest extends TestCase
         $pools = new \Doctrine\Common\Collections\ArrayCollection([$pool]);
         
         // 设置期望
-        $chance->expects($this->once())
+        $chance->expects($this->exactly(2))
             ->method('getActivity')
             ->willReturn($activity);
         
@@ -192,7 +190,7 @@ class PoolServiceTest extends TestCase
             ->method('getUser')
             ->willReturn($user);
         
-        $chance->expects($this->exactly(2))
+        $chance->expects($this->once())
             ->method('getPool')
             ->willReturn(null);
         

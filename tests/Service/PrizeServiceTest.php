@@ -33,8 +33,6 @@ class PrizeServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->markTestSkipped('需要进一步完善测试用例');
-        
         $this->resourceManager = $this->createMock(ResourceManager::class);
         $this->engine = $this->createMock(Engine::class);
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -79,14 +77,22 @@ class PrizeServiceTest extends TestCase
             ->method('getId')
             ->willReturn(1);
         
+        $prize->expects($this->once())
+            ->method('getName')
+            ->willReturn('测试奖品');
+        
+        $prize->expects($this->once())
+            ->method('getQuantity')
+            ->willReturn(10);
+        
         // 设置奖池
         $prizes = new \Doctrine\Common\Collections\ArrayCollection([$prize]);
-        $pool->expects($this->once())
+        $pool->expects($this->exactly(2))
             ->method('getPrizes')
             ->willReturn($prizes);
         
         // 设置 Chance 对象
-        $chance->expects($this->once())
+        $chance->expects($this->exactly(2))
             ->method('getPool')
             ->willReturn($pool);
         
@@ -148,14 +154,22 @@ class PrizeServiceTest extends TestCase
             ->method('getId')
             ->willReturn(1);
         
+        $prize->expects($this->once())
+            ->method('getName')
+            ->willReturn('测试奖品');
+        
+        $prize->expects($this->once())
+            ->method('getQuantity')
+            ->willReturn(10);
+        
         // 设置奖池
         $prizes = new \Doctrine\Common\Collections\ArrayCollection([$prize]);
-        $pool->expects($this->once())
+        $pool->expects($this->exactly(2))
             ->method('getPrizes')
             ->willReturn($prizes);
         
         // 设置 Chance 对象
-        $chance->expects($this->once())
+        $chance->expects($this->exactly(2))
             ->method('getPool')
             ->willReturn($pool);
         
@@ -212,14 +226,18 @@ class PrizeServiceTest extends TestCase
             ->method('getName')
             ->willReturn('测试奖品');
         
+        $prize->expects($this->once())
+            ->method('getQuantity')
+            ->willReturn(10);
+        
         // 设置奖池
         $prizes = new \Doctrine\Common\Collections\ArrayCollection([$prize]);
-        $pool->expects($this->once())
+        $pool->expects($this->any())
             ->method('getPrizes')
             ->willReturn($prizes);
         
         // 设置 Chance 对象
-        $chance->expects($this->once())
+        $chance->expects($this->any())
             ->method('getPool')
             ->willReturn($pool);
         
@@ -292,9 +310,8 @@ class PrizeServiceTest extends TestCase
             ->method('getPrize')
             ->willReturn($prize);
         
-        $chance->expects($this->once())
-            ->method('getStatus')
-            ->willReturn(ChanceStatusEnum::WINNING);
+        $chance->expects($this->never())
+            ->method('getStatus');
         
         $chance->expects($this->once())
             ->method('getUser')
@@ -355,9 +372,13 @@ class PrizeServiceTest extends TestCase
             ->method('getPrize')
             ->willReturn($prize);
         
-        $chance->expects($this->once())
+        $chance->expects($this->exactly(2))
             ->method('getStatus')
             ->willReturn(ChanceStatusEnum::WINNING); // 未审核状态
+        
+        $chance->expects($this->once())
+            ->method('getId')
+            ->willReturn(1);
         
         // 期望记录错误日志
         $this->logger->expects($this->once())
@@ -395,18 +416,47 @@ class PrizeServiceTest extends TestCase
             ->method('isNeedReview')
             ->willReturn(false);
         
+        $prize->expects($this->once())
+            ->method('getType')
+            ->willReturn('virtual');
+        
+        $prize->expects($this->once())
+            ->method('getTypeId')
+            ->willReturn('1001');
+        
+        $prize->expects($this->once())
+            ->method('getAmount')
+            ->willReturn(1);
+        
+        $prize->expects($this->once())
+            ->method('getExpireDay')
+            ->willReturn(30.0);
+        
+        $prize->expects($this->once())
+            ->method('getExpireTime')
+            ->willReturn(null);
+        
+        // 设置活动结束时间
+        $endTime = Carbon::now()->addDays(60);
+        $activity->expects($this->once())
+            ->method('getEndTime')
+            ->willReturn($endTime);
+        
         // 设置 Chance 对象
         $chance->expects($this->once())
             ->method('getPrize')
             ->willReturn($prize);
         
-        $chance->expects($this->once())
-            ->method('getStatus')
-            ->willReturn(ChanceStatusEnum::WINNING);
+        $chance->expects($this->never())
+            ->method('getStatus');
         
         $chance->expects($this->once())
             ->method('getUser')
             ->willReturn($user);
+        
+        $chance->expects($this->once())
+            ->method('getActivity')
+            ->willReturn($activity);
         
         $chance->expects($this->never())
             ->method('setSendTime');

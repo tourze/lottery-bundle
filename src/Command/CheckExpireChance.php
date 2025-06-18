@@ -19,6 +19,7 @@ use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 #[AsCommand(name: 'lottery:check-expire-chance', description: '检查过期的机会数据')]
 class CheckExpireChance extends Command
 {
+    public const NAME = 'lottery:check-expire-chance';
     public function __construct(
         private readonly ChanceRepository $chanceRepository,
         private readonly EventDispatcherInterface $eventDispatcher,

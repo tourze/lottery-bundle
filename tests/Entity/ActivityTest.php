@@ -202,8 +202,6 @@ class ActivityTest extends TestCase
         $reflectionProperty->setValue($this->activity, 1);
         
         $array = $this->activity->retrievePlainArray();
-        
-        $this->assertIsArray($array);
         $this->assertArrayHasKey('id', $array);
         $this->assertArrayHasKey('title', $array);
         $this->assertArrayHasKey('startTime', $array);
@@ -228,8 +226,6 @@ class ActivityTest extends TestCase
         $reflectionProperty->setValue($this->activity, 1);
         
         $array = $this->activity->retrieveAdminArray();
-        
-        $this->assertIsArray($array);
         $this->assertArrayHasKey('id', $array);
         $this->assertArrayHasKey('title', $array);
         $this->assertEquals(1, $array['id']);

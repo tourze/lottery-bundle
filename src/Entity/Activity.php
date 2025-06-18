@@ -13,8 +13,6 @@ use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
@@ -38,14 +36,14 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '规则文本'])]
     private ?string $textRule = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '开始时间'])]
-    private ?\DateTimeInterface $startTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '开始时间'])]
+    private ?\DateTimeImmutable $startTime = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '结束时间'])]
-    private ?\DateTimeInterface $endTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '结束时间'])]
+    private ?\DateTimeImmutable $endTime = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后兑奖时间'])]
-    private ?\DateTimeInterface $lastRedeemTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后兑奖时间'])]
+    private ?\DateTimeImmutable $lastRedeemTime = null;
     
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '头图'])]
     private ?string $headPhoto = null;
@@ -106,10 +104,7 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
 
-    #[IndexColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]public function __construct()
+    public function __construct()
     {
         $this->chances = new ArrayCollection();
         $this->pools = new ArrayCollection();
@@ -156,36 +151,36 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this;
     }
 
-    public function getStartTime(): ?\DateTimeInterface
+    public function getStartTime(): ?\DateTimeImmutable
     {
         return $this->startTime;
     }
 
-    public function setStartTime(\DateTimeInterface $startTime): self
+    public function setStartTime(\DateTimeImmutable $startTime): self
     {
         $this->startTime = $startTime;
 
         return $this;
     }
 
-    public function getEndTime(): ?\DateTimeInterface
+    public function getEndTime(): ?\DateTimeImmutable
     {
         return $this->endTime;
     }
 
-    public function setEndTime(\DateTimeInterface $endTime): self
+    public function setEndTime(\DateTimeImmutable $endTime): self
     {
         $this->endTime = $endTime;
 
         return $this;
     }
 
-    public function getLastRedeemTime(): ?\DateTimeInterface
+    public function getLastRedeemTime(): ?\DateTimeImmutable
     {
         return $this->lastRedeemTime;
     }
 
-    public function setLastRedeemTime(?\DateTimeInterface $lastRedeemTime): void
+    public function setLastRedeemTime(?\DateTimeImmutable $lastRedeemTime): void
     {
         $this->lastRedeemTime = $lastRedeemTime;
     }

@@ -11,8 +11,6 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrinePrecisionBundle\Attribute\PrecisionColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
@@ -53,18 +51,12 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     #[ORM\Column(nullable: true, options: ['default' => '0', 'comment' => '每日数量'])]
     private ?int $dayLimit = 0;
 
-    /**
-     * 也可以简单理解为：第N次必中？
-     */
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '概率数'])]
     private ?int $probability = 0;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '概率表达式'])]
     private ?string $probabilityExpression = null;
 
-    /**
-     * 记录奖品的成本，有些特殊的抽奖也可能用来作为概率的参数.
-     */
     #[PrecisionColumn]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true, options: ['default' => '0.00', 'comment' => '奖品价值'])]
     private ?string $value = null;
@@ -72,8 +64,8 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     #[ORM\Column(nullable: true, options: ['comment' => '派发后有效天数'])]
     private ?float $expireDay = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '派发后到期时间'])]
-    private ?\DateTimeInterface $expireTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '派发后到期时间'])]
+    private ?\DateTimeImmutable $expireTime = null;
 
     #[ORM\Column(length: 512, nullable: true, options: ['comment' => '主图'])]
     private ?string $picture = null;
@@ -93,9 +85,6 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否在奖品列表展示', 'default' => true])]
     private ?bool $canShowPrize = true;
 
-    /**
-     * 如果一个人啥都没中，那么就会必中兜底奖项.
-     */
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '兜底奖项'])]
     private ?bool $isDefault = false;
 
@@ -114,9 +103,6 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'prize', orphanRemoval: true)]
     private Collection $stocks;
 
-    /**
-     * order值大的排序靠前。有效的值范围是[0, 2^32].
-     */
     #[IndexColumn]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     private ?int $sortNumber = 0;
@@ -134,10 +120,7 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[IndexColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]public function __construct()
+    public function __construct()
     {
         $this->stocks = new ArrayCollection();
     }
@@ -290,12 +273,12 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
         return $this;
     }
 
-    public function getExpireTime(): ?\DateTimeInterface
+    public function getExpireTime(): ?\DateTimeImmutable
     {
         return $this->expireTime;
     }
 
-    public function setExpireTime(?\DateTimeInterface $expireTime): static
+    public function setExpireTime(?\DateTimeImmutable $expireTime): static
     {
         $this->expireTime = $expireTime;
 

@@ -15,6 +15,7 @@ use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 #[AsCommand(name: 'lottery:check-review-chance-send-prize', description: '已审核的机会需要发奖')]
 class CheckReviewChanceToSendPrize extends Command
 {
+    public const NAME = 'lottery:check-review-chance-send-prize';
     public function __construct(
         private readonly ChanceRepository $chanceRepository,
         private readonly PrizeService $prizeService,

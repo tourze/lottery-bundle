@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Procedure;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Event\UserJoinSuccessEvent;
@@ -54,7 +54,7 @@ class JoinLottery extends LockableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if (!$activity || $activity->getEndTime() < Carbon::now()) {
+        if (!$activity || $activity->getEndTime() < CarbonImmutable::now()) {
             throw new ApiException('活动无效');
         }
 
@@ -74,8 +74,8 @@ class JoinLottery extends LockableProcedure
             //            $chance->setUser($this->security->getUser());
             //            $chance->setValid(true);
             //            $chance->setTitle('手动生成');
-            //            $chance->setStartTime(Carbon::now());
-            //            $chance->setExpireTime(Carbon::now()->addDays(7));
+            //            $chance->setStartTime(CarbonImmutable::now());
+            //            $chance->setExpireTime(CarbonImmutable::now()->addDays(7));
             //            $this->chanceRepository->save($chance);
         }
 
@@ -87,7 +87,7 @@ class JoinLottery extends LockableProcedure
             }
 
             // 过期的话，在这里直接设置为过期
-            if ($chance->getExpireTime() && Carbon::now()->greaterThan($chance->getExpireTime())) {
+            if ($chance->getExpireTime() && CarbonImmutable::now()->greaterThan($chance->getExpireTime())) {
                 $chance->setValid(false);
                 $this->entityManager->persist($chance);
                 $this->entityManager->flush();

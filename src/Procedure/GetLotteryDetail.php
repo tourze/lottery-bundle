@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Procedure;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -50,7 +50,7 @@ class GetLotteryDetail extends CacheableProcedure
                 ->where('a.user = :user AND a.activity = :activity AND a.valid = true and a.expireTime > :now')
                 ->setParameter('user', $this->security->getUser())
                 ->setParameter('activity', $activity)
-                ->setParameter('now', Carbon::now())
+                ->setParameter('now', CarbonImmutable::now())
                 ->getQuery()
                 ->getSingleScalarResult();
             $result['validChanceCount'] = intval($c);

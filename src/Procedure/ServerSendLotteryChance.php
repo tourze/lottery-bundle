@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Procedure;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Service\LotteryService;
@@ -63,11 +63,11 @@ class ServerSendLotteryChance extends LockableProcedure
         $chance->setActivity($activity);
         $chance->setValid(true);
         if ($this->startTime) {
-            $chance->setStartTime(Carbon::parse($this->startTime));
+            $chance->setStartTime(CarbonImmutable::parse($this->startTime));
         }
 
         if ($this->expireTime) {
-            $chance->setExpireTime(Carbon::parse($this->expireTime));
+            $chance->setExpireTime(CarbonImmutable::parse($this->expireTime));
         }
 
         $chance->setUser($user);

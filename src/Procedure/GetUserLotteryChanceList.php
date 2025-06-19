@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Procedure;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\Common\Collections\Criteria;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
@@ -61,7 +61,7 @@ class GetUserLotteryChanceList extends BaseProcedure
             ->andWhere('c.startTime <= :now and c.expireTime >= :now')
             ->setParameter('user', $this->security->getUser())
             ->setParameter('activity', $activity)
-            ->setParameter('now', Carbon::now())
+            ->setParameter('now', CarbonImmutable::now())
             ->getQuery()
             ->getResult();
 
@@ -84,7 +84,7 @@ class GetUserLotteryChanceList extends BaseProcedure
             'used' => $used,
             'unUsed' => $unUsed,
             'activity' => $activity->retrievePlainArray(),
-            'canRedeem' => Carbon::now() <= $activity->getLastRedeemTime(),
+            'canRedeem' => CarbonImmutable::now() <= $activity->getLastRedeemTime(),
         ];
     }
 }

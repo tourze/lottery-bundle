@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Procedure;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -44,7 +44,7 @@ class GetUserValidLotteryChanceCounts extends BaseProcedure
             ->andWhere('c.startTime <= :now and c.expireTime >= :now')
             ->setParameter('user', $this->security->getUser())
             ->setParameter('activity', $activity)
-            ->setParameter('now', Carbon::now())
+            ->setParameter('now', CarbonImmutable::now())
             ->getQuery()
             ->getSingleScalarResult();
 

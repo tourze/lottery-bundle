@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Command;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Enum\ChanceStatusEnum;
@@ -33,7 +33,7 @@ class CheckExpireChance extends Command
         // 如果不是几千上万条的话，我们就不做条数限制了
         $chances = $this->chanceRepository->createQueryBuilder('a')
             ->where('a.valid = true AND a.expireTime <= :now')
-            ->setParameter('now', Carbon::now()->format('Y-m-d H:i:s'))
+            ->setParameter('now', CarbonImmutable::now()->format('Y-m-d H:i:s'))
             ->setMaxResults(1000) // 1000条够多了吧
             ->getQuery()
             ->toIterable();

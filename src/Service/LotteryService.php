@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
@@ -37,7 +37,7 @@ class LotteryService
      */
     public function doLottery(Chance $chance): void
     {
-        $now = Carbon::now();
+        $now = CarbonImmutable::now();
 
         // 有可能提前定好了奖品
         if (!$chance->getPrize()) {
@@ -181,7 +181,7 @@ class LotteryService
     public function giveChance(UserInterface $user, Chance $chance): void
     {
         $chance->setUser($user);
-        $chance->setStartTime(Carbon::now());
+        $chance->setStartTime(CarbonImmutable::now());
 
         //        这里处理奖池吧
         //        $decidePoolEvent = new DecidePoolEvent();

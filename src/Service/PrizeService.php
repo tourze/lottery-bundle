@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Enum\ChanceStatusEnum;
@@ -115,7 +115,7 @@ class PrizeService
      */
     public function sendPrize(Chance $chance): void
     {
-        $now = Carbon::now();
+        $now = CarbonImmutable::now();
         $prize = $chance->getPrize();
         // 需审核的奖品不自动发
         // var_dump($prize->isNeedReview(),$chance->getStatus());

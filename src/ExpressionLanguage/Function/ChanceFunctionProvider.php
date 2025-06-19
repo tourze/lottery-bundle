@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\ExpressionLanguage\Function;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
@@ -85,14 +85,14 @@ class ChanceFunctionProvider implements ExpressionFunctionProviderInterface
         }
 
         if (is_string($expireTime)) {
-            $expireTime = Carbon::parse($expireTime);
+            $expireTime = CarbonImmutable::parse($expireTime);
         }
 
         $chance = new Chance();
         $chance->setValid(true);
         $chance->setActivity($activity);
         $chance->setUser($user);
-        $chance->setStartTime(Carbon::now());
+        $chance->setStartTime(CarbonImmutable::now());
         $chance->setExpireTime($expireTime);
 
         try {

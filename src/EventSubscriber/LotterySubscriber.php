@@ -2,7 +2,7 @@
 
 namespace LotteryBundle\EventSubscriber;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use LotteryBundle\Entity\ActivityAttribute;
 use LotteryBundle\Event\ChanceEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -22,13 +22,13 @@ class LotterySubscriber
                 $startTime = $event->getChance()->getStartTime();
                 switch ($attribute->getValue()) {
                     case 'day':
-                        $event->getChance()->setExpireTime(Carbon::parse($startTime)->endOfDay());
+                        $event->getChance()->setExpireTime(CarbonImmutable::parse($startTime)->endOfDay());
                         break;
                     case 'month':
-                        $event->getChance()->setExpireTime(Carbon::parse($startTime)->addMonth()->endOfDay());
+                        $event->getChance()->setExpireTime(CarbonImmutable::parse($startTime)->addMonth()->endOfDay());
                         break;
                     default:
-                        $time = Carbon::parse($attribute->getValue());
+                        $time = CarbonImmutable::parse($attribute->getValue());
                         if ($time) {
                             $event->getChance()->setExpireTime($time);
                         }

@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 
 #[AsCronTask('43 * * * *')]
-#[AsCommand(name: 'lottery:check-review-chance-send-prize', description: '已审核的机会需要发奖')]
+#[AsCommand(name: self::NAME, description: '已审核的机会需要发奖')]
 class CheckReviewChanceToSendPrize extends Command
 {
     public const NAME = 'lottery:check-review-chance-send-prize';

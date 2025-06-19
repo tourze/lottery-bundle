@@ -2,7 +2,6 @@
 
 namespace LotteryBundle\Tests\Entity;
 
-use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\ActivityAttribute;
@@ -26,9 +25,9 @@ class ActivityTest extends TestCase
     {
         $title = '测试活动';
         $textRule = '活动规则内容';
-        $startTime = Carbon::now();
-        $endTime = Carbon::now()->addDays(7);
-        $lastRedeemTime = Carbon::now()->addDays(10);
+        $startTime = new \DateTimeImmutable();
+        $endTime = (new \DateTimeImmutable())->add(new \DateInterval('P7D'));
+        $lastRedeemTime = (new \DateTimeImmutable())->add(new \DateInterval('P10D'));
         $headPhoto = 'http://example.com/image.jpg';
         $noChanceText = '没有抽奖机会了';
         $sharePath = '/share';
@@ -39,8 +38,8 @@ class ActivityTest extends TestCase
         $updatedBy = 'admin';
         $createdFromIp = '127.0.0.1';
         $updatedFromIp = '127.0.0.1';
-        $createTime = Carbon::now();
-        $updateTime = Carbon::now();
+        $createTime = new \DateTimeImmutable();
+        $updateTime = new \DateTimeImmutable();
 
         $this->activity->setTitle($title);
         $this->activity->setTextRule($textRule);
@@ -188,8 +187,8 @@ class ActivityTest extends TestCase
     public function test_retrievePlainArray_returnsCorrectArray(): void
     {
         $title = '测试活动';
-        $startTime = Carbon::now();
-        $endTime = Carbon::now()->addDays(7);
+        $startTime = new \DateTimeImmutable();
+        $endTime = (new \DateTimeImmutable())->add(new \DateInterval('P7D'));
         
         $this->activity->setTitle($title);
         $this->activity->setStartTime($startTime);

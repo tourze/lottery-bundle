@@ -16,7 +16,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 
 #[AsCronTask('* * * * *')]
-#[AsCommand(name: 'lottery:check-expire-chance', description: '检查过期的机会数据')]
+#[AsCommand(name: self::NAME, description: '检查过期的机会数据')]
 class CheckExpireChance extends Command
 {
     public const NAME = 'lottery:check-expire-chance';

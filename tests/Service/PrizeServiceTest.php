@@ -2,7 +2,6 @@
 
 namespace LotteryBundle\Tests\Service;
 
-use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
@@ -300,7 +299,7 @@ class PrizeServiceTest extends TestCase
             ->willReturn(null);
         
         // 设置活动结束时间
-        $endTime = Carbon::now()->addDays(60);
+        $endTime = (new \DateTimeImmutable())->add(new \DateInterval('P60D'));
         $activity->expects($this->once())
             ->method('getEndTime')
             ->willReturn($endTime);
@@ -437,7 +436,7 @@ class PrizeServiceTest extends TestCase
             ->willReturn(null);
         
         // 设置活动结束时间
-        $endTime = Carbon::now()->addDays(60);
+        $endTime = (new \DateTimeImmutable())->add(new \DateInterval('P60D'));
         $activity->expects($this->once())
             ->method('getEndTime')
             ->willReturn($endTime);

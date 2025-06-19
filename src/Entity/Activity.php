@@ -15,8 +15,7 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\ResourceManageBundle\Model\ResourceIdentity;
 
 #[ORM\Entity(repositoryClass: ActivityRepository::class)]
@@ -24,6 +23,7 @@ use Tourze\ResourceManageBundle\Model\ResourceIdentity;
 class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface, ResourceIdentity
 {
     use TimestampableAware;
+    use BlameableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -88,13 +88,6 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     private ?bool $valid = false;
 
     // 审计信息
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[CreateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
@@ -366,29 +359,7 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->updatedFromIp;
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }public function retrievePlainArray(): array
+public function retrievePlainArray(): array
     {
         return [
             'id' => $this->getId(),

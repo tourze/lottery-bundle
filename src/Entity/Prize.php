@@ -46,13 +46,13 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     private ?int $amount = 1;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '总数量'])]
-    private ?int $quantity = 0;
+    private int $quantity = 0;
 
     #[ORM\Column(nullable: true, options: ['default' => '0', 'comment' => '每日数量'])]
     private ?int $dayLimit = 0;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '概率数'])]
-    private ?int $probability = 0;
+    private int $probability = 0;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '概率表达式'])]
     private ?string $probabilityExpression = null;
@@ -80,13 +80,13 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     private ?string $consigneePicture = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否参与轮播', 'default' => true])]
-    private ?bool $canShow = true;
+    private bool $canShow = true;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否在奖品列表展示', 'default' => true])]
     private ?bool $canShowPrize = true;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '兜底奖项'])]
-    private ?bool $isDefault = false;
+    private bool $isDefault = false;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '登记收货地址'])]
     private ?bool $needConsignee = false;
@@ -120,7 +120,7 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
 
     public function __toString()
     {
-        if (!$this->getId()) {
+        if ($this->getId() === null || $this->getId() === 0) {
             return '';
         }
 

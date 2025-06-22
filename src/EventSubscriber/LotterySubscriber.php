@@ -29,9 +29,7 @@ class LotterySubscriber
                         break;
                     default:
                         $time = CarbonImmutable::parse($attribute->getValue());
-                        if ($time) {
-                            $event->getChance()->setExpireTime($time);
-                        }
+                        $event->getChance()->setExpireTime($time);
                         break;
                 }
             }

@@ -37,14 +37,14 @@ class GetLotteryDetail extends CacheableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if (!$activity) {
+        if ($activity === null) {
             throw new ApiException('活动无效');
         }
 
         $result = $activity->retrievePlainArray();
         $result['validChanceCount'] = 0; // 当前有效的抽奖次数
 
-        if ($this->security->getUser()) {
+        if ($this->security->getUser() !== null) {
             $c = $this->chanceRepository->createQueryBuilder('a')
                 ->select('COUNT(a.id)')
                 ->where('a.user = :user AND a.activity = :activity AND a.valid = true and a.expireTime > :now')
@@ -62,7 +62,7 @@ class GetLotteryDetail extends CacheableProcedure
     public function getCacheKey(JsonRpcRequest $request): string
     {
         $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser()) {
+        if ($this->security->getUser() !== null) {
             $key .= '-' . $this->security->getUser()->getUserIdentifier();
         }
 

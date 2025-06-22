@@ -70,7 +70,7 @@ class LotteryServiceTest extends TestCase
         // 设置 Chance 对象
         $chance->expects($this->any())
             ->method('getPrize')
-            ->willReturnCallback(function() use (&$prizeSet, $prize) {
+            ->willReturnCallback(function() use ($prize) {
                 static $callCount = 0;
                 $callCount++;
                 if ($callCount <= 2) {
@@ -192,7 +192,7 @@ class LotteryServiceTest extends TestCase
         // 设置 Chance 对象
         $chance->expects($this->any())
             ->method('getPrize')
-            ->willReturnCallback(function() use (&$prizeSet, $prize) {
+            ->willReturnCallback(function() use ($prize) {
                 static $callCount = 0;
                 $callCount++;
                 if ($callCount <= 2) {

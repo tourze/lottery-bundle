@@ -106,7 +106,7 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if ($this->getId() === null || $this->getId() === 0) {
             return '';
         }
 
@@ -256,7 +256,7 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     {
         if ($this->chances->removeElement($chance)) {
             // set the owning side to null (unless already changed)
-            if ($chance === $this) {
+            if ($chance->getActivity() === $this) {
                 $chance->setActivity(null);
             }
         }

@@ -38,7 +38,7 @@ class GetLotteryConsignee extends CacheableProcedure
             'id' => $this->chanceId,
             'user' => $this->security->getUser(),
         ]);
-        if (empty($chance)) {
+        if ($chance === null) {
             throw new ApiException('抽奖信息错误');
         }
 
@@ -48,7 +48,7 @@ class GetLotteryConsignee extends CacheableProcedure
     public function getCacheKey(JsonRpcRequest $request): string
     {
         $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser()) {
+        if ($this->security->getUser() !== null) {
             $key .= '-' . $this->security->getUser()->getUserIdentifier();
         }
 

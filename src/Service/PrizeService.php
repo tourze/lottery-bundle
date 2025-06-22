@@ -103,7 +103,7 @@ class PrizeService
         $chance->setProbabilityContext($probabilityContext);
 
         $card = $luckyBox->draw();
-        if ($card) {
+        if ($card instanceof IdCard) {
             $prize = $chance->getPool()->getPrizes()->get($card->getId());
             $chance->setPrize($prize);
             $chance->setStatus(ChanceStatusEnum::WINNING);
@@ -133,7 +133,7 @@ class PrizeService
                 $chance->getUser(),
                 $prize->getType(),
                 $prize->getTypeId(),
-                $prize->getAmount(),
+                (string)$prize->getAmount(),
                 $prize->getExpireDay(),
                 $prize->getExpireTime() ?? $chance->getActivity()->getEndTime(),
             );

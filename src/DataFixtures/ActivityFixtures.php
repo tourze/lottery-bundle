@@ -23,9 +23,9 @@ class ActivityFixtures extends Fixture implements DependentFixtureInterface
         $activity1 = new Activity();
         $activity1->setTitle('测试活动1');
         $activity1->setTextRule('这是测试活动1的规则说明');
-        $activity1->setStartTime(new \DateTime('now'));
-        $activity1->setEndTime(new \DateTime('+30 days'));
-        $activity1->setLastRedeemTime(new \DateTime('+45 days'));
+        $activity1->setStartTime(new \DateTimeImmutable('now'));
+        $activity1->setEndTime(new \DateTimeImmutable('+30 days'));
+        $activity1->setLastRedeemTime(new \DateTimeImmutable('+45 days'));
         $activity1->setHeadPhoto('https://example.com/images/activity1.jpg');
         $activity1->setValid(true);
 
@@ -38,9 +38,9 @@ class ActivityFixtures extends Fixture implements DependentFixtureInterface
         $activity2 = new Activity();
         $activity2->setTitle('测试活动2');
         $activity2->setTextRule('这是测试活动2的规则说明');
-        $activity2->setStartTime(new \DateTime('+5 days'));
-        $activity2->setEndTime(new \DateTime('+60 days'));
-        $activity2->setLastRedeemTime(new \DateTime('+75 days'));
+        $activity2->setStartTime(new \DateTimeImmutable('+5 days'));
+        $activity2->setEndTime(new \DateTimeImmutable('+60 days'));
+        $activity2->setLastRedeemTime(new \DateTimeImmutable('+75 days'));
         $activity2->setHeadPhoto('https://example.com/images/activity2.jpg');
         $activity2->setShareTitle('分享赢大奖');
         $activity2->setSharePicture('https://example.com/images/share.jpg');

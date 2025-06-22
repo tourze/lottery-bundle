@@ -40,7 +40,7 @@ class LotteryService
         $now = CarbonImmutable::now();
 
         // 有可能提前定好了奖品
-        if (!$chance->getPrize()) {
+        if ($chance->getPrize() === null) {
             // 分配奖池
             $this->poolService->dispatch($chance);
 
@@ -48,13 +48,13 @@ class LotteryService
             $this->prizeService->dispatch($chance);
         }
         // 有一种可能就是定了奖品，但是没定奖池，我们这里要补充下
-        if (!$chance->getPool() && $chance->getPrize()) {
+        if ($chance->getPool() === null && $chance->getPrize() !== null) {
             $chance->setPool($chance->getPrize()->getPool());
         }
 
         // 如果有配置每日发放数量，这里也要判断一下
         $prizeReachDayLimit = false;
-        if ($chance->getPrize() && $chance->getPrize()->getDayLimit() > 0) {
+        if ($chance->getPrize() !== null && $chance->getPrize()->getDayLimit() > 0) {
             $prize = $chance->getPrize();
             $count = $this->chanceRepository->createQueryBuilder('c')
                 ->select('count(c.id)')
@@ -75,7 +75,7 @@ class LotteryService
         }
 
         // 如果到这里还没抽中，或抽到的奖品没有库存，或已达到每日限制数量，，同时有设置了兜底奖品那么我们就当做做了兜底奖品，减少下面的查询压力啦
-        if (!$chance->getPrize() || $chance->getPrize()->getQuantity() <= 0 || $prizeReachDayLimit) {
+        if ($chance->getPrize() === null || $chance->getPrize()->getQuantity() <= 0 || $prizeReachDayLimit) {
             $this->logger->info('符合以下条件，中兜底奖品', [
                 'prize' => $chance->getPrize(),
                 'quantity' => $chance->getPrize()?->getQuantity(),
@@ -110,7 +110,7 @@ class LotteryService
             }
         }
 
-        if (!$chance->getPrize()) {
+        if ($chance->getPrize() === null) {
             throw new LotteryException($_ENV['LOTTERY_JOIN_EMPTY_MESSAGE'] ?? '抽奖失败，找不到任何奖励');
         }
 

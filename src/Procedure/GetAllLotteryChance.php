@@ -47,7 +47,7 @@ class GetAllLotteryChance extends CacheableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if (!$activity) {
+        if ($activity === null) {
             throw new ApiException('活动无效');
         }
 
@@ -63,7 +63,7 @@ class GetAllLotteryChance extends CacheableProcedure
         $event = new AllLotteryChanceEvent();
         $event->setUser($this->security->getUser());
         $event->setQueryBuilder($qb);
-        $event->setActivityId($activity->getId());
+        $event->setActivityId((string)$activity->getId());
         $this->eventDispatcher->dispatch($event);
 
         $chance = $event->getQueryBuilder()->getQuery()->getResult();
@@ -80,7 +80,8 @@ class GetAllLotteryChance extends CacheableProcedure
             // 这里不返回地址用户等敏感信息
             unset($tmp['consignee']);
             unset($tmp['user']);
-            $str = $item->getUser()->getNickName();
+            $user = $item->getUser();
+            $str = method_exists($user, 'getNickName') ? $user->getNickName() : $user->getUserIdentifier();
             $tmp['nick_name'] = mb_substr($str, 0, 1) . '**' . mb_substr($str, -1, 1);
             $list[] = $tmp;
         }
@@ -91,7 +92,7 @@ class GetAllLotteryChance extends CacheableProcedure
     public function getCacheKey(JsonRpcRequest $request): string
     {
         $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser()) {
+        if ($this->security->getUser() !== null) {
             $key .= '-' . $this->security->getUser()->getUserIdentifier();
         }
 

@@ -33,7 +33,7 @@ class H5LotteryController extends AbstractController
 
         // 获取活动信息
         $activity = $this->activityRepository->find($activityId);
-        if (!$activity) {
+        if ($activity === null) {
             throw $this->createNotFoundException('抽奖活动不存在');
         }
 
@@ -109,7 +109,7 @@ class H5LotteryController extends AbstractController
         }
 
         $activity = $this->activityRepository->find($activityId);
-        if (!$activity) {
+        if ($activity === null) {
             throw $this->createNotFoundException('抽奖活动不存在');
         }
 

@@ -52,16 +52,16 @@ class SaveOrUpdateLotteryConsignee extends LockableProcedure
             'id' => $this->chanceId,
             'user' => $this->security->getUser(),
         ]);
-        if (empty($chance)) {
+        if ($chance === null) {
             throw new ApiException('抽奖信息错误');
         }
 
         $consignee = $this->consigneeRepository->find($this->consigneeId);
-        if (empty($consignee)) {
+        if ($consignee === null) {
             $consignee = $this->consigneeRepository->findOneBy([
                 'chance' => $chance,
             ]);
-            if (empty($consignee)) {
+            if ($consignee === null) {
                 $consignee = new Consignee();
             }
         }

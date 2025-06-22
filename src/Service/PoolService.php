@@ -22,7 +22,7 @@ class PoolService
         $event->setChance($chance);
         $event->setUser($chance->getUser());
         $this->eventDispatcher->dispatch($event);
-        if ($chance->getPool()) {
+        if ($chance->getPool() !== null) {
             return;
         }
 

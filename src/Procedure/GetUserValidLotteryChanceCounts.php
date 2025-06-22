@@ -34,7 +34,7 @@ class GetUserValidLotteryChanceCounts extends BaseProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if (!$activity) {
+        if ($activity === null) {
             throw new ApiException('活动无效');
         }
 

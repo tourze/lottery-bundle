@@ -44,7 +44,7 @@ class GetLotteryPrizeList extends CacheableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if (!$activity) {
+        if ($activity === null) {
             throw new ApiException('活动无效');
         }
 
@@ -54,7 +54,7 @@ class GetLotteryPrizeList extends CacheableProcedure
         $this->eventDispatcher->dispatch($decidePoolEvent);
         $pool = $decidePoolEvent->getPool();
 
-        if (empty($pool)) {
+        if ($pool === null) {
             // 存在多个奖池则取第一个
             $pool = $this->poolRepository->createQueryBuilder('p')
                 ->leftJoin('p.activities', 'a')
@@ -63,7 +63,7 @@ class GetLotteryPrizeList extends CacheableProcedure
                 ->getQuery()
                 ->getResult();
         }
-        if (empty($pool)) {
+        if ($pool === null) {
             throw new ApiException('暂无奖品');
         }
 
@@ -88,7 +88,7 @@ class GetLotteryPrizeList extends CacheableProcedure
     public function getCacheKey(JsonRpcRequest $request): string
     {
         $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser()) {
+        if ($this->security->getUser() !== null) {
             $key .= '-' . $this->security->getUser()->getUserIdentifier();
         }
 

@@ -247,9 +247,10 @@ class PrizeCrudController extends AbstractCrudController
 
         // 检查是否有过滤条件，如果有表示是从奖池页面跳转而来
         $request = $this->getContext()->getRequest();
-        $poolFilter = $request->query->get('filters', [])['pool'] ?? null;
+        $filters = $request->query->get('filters');
+        $poolFilter = is_array($filters) && isset($filters['pool']) ? $filters['pool'] : null;
 
-        if ($poolFilter) {
+        if ($poolFilter !== null) {
             $actions->add(Crud::PAGE_INDEX, $backToPool);
         }
 
@@ -278,9 +279,10 @@ class PrizeCrudController extends AbstractCrudController
     public function backToPoolAction(AdminContext $context): Response
     {
         // 获取池ID
-        $poolId = $context->getRequest()->query->get('filters', [])['pool']['value'] ?? null;
+        $filters = $context->getRequest()->query->get('filters');
+        $poolId = is_array($filters) && isset($filters['pool']['value']) ? $filters['pool']['value'] : null;
 
-        if (!$poolId) {
+        if ($poolId === null) {
             // 如果没有poolId，返回到所有奖池列表
             $url = $this->adminUrlGenerator
                 ->setController(PoolCrudController::class)

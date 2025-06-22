@@ -18,7 +18,7 @@ class StockFixtures extends Fixture implements DependentFixtureInterface
         // 为一等奖添加库存
         for ($i = 1; $i <= 50; $i++) {
             $stock = new Stock();
-            $stock->setSn('PRIZE1-' . str_pad($i, 5, '0', STR_PAD_LEFT));
+            $stock->setSn('PRIZE1-' . str_pad((string)$i, 5, '0', STR_PAD_LEFT));
             $stock->setPrize($this->getReference(PrizeFixtures::PRIZE_REFERENCE_1, Prize::class));
 
             $manager->persist($stock);
@@ -35,7 +35,7 @@ class StockFixtures extends Fixture implements DependentFixtureInterface
         // 为二等奖添加库存
         for ($i = 1; $i <= 100; $i++) {
             $stock = new Stock();
-            $stock->setSn('PRIZE2-' . str_pad($i, 5, '0', STR_PAD_LEFT));
+            $stock->setSn('PRIZE2-' . str_pad((string)$i, 5, '0', STR_PAD_LEFT));
             $stock->setPrize($this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class));
 
             $manager->persist($stock);
@@ -52,7 +52,7 @@ class StockFixtures extends Fixture implements DependentFixtureInterface
         // 为三等奖添加库存
         for ($i = 1; $i <= 200; $i++) {
             $stock = new Stock();
-            $stock->setSn('PRIZE3-' . str_pad($i, 5, '0', STR_PAD_LEFT));
+            $stock->setSn('PRIZE3-' . str_pad((string)$i, 5, '0', STR_PAD_LEFT));
             $stock->setPrize($this->getReference(PrizeFixtures::PRIZE_REFERENCE_3, Prize::class));
 
             $manager->persist($stock);

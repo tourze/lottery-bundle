@@ -49,12 +49,12 @@ class ServerSendLotteryChance extends LockableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if (!$activity) {
+        if ($activity === null) {
             throw new ApiException('找不到抽奖活动');
         }
 
         $user = $this->userLoader->loadUserByIdentifier($this->userIdentity);
-        if (!$user) {
+        if ($user === null) {
             throw new ApiException('找不到用户信息');
         }
 
@@ -62,11 +62,11 @@ class ServerSendLotteryChance extends LockableProcedure
         $chance->setTitle($this->title);
         $chance->setActivity($activity);
         $chance->setValid(true);
-        if ($this->startTime) {
+        if ($this->startTime !== '') {
             $chance->setStartTime(CarbonImmutable::parse($this->startTime));
         }
 
-        if ($this->expireTime) {
+        if ($this->expireTime !== '') {
             $chance->setExpireTime(CarbonImmutable::parse($this->expireTime));
         }
 

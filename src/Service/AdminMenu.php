@@ -21,7 +21,7 @@ class AdminMenu implements MenuProviderInterface
 
     public function __invoke(ItemInterface $item): void
     {
-        if (!$item->getChild('抽奖活动')) {
+        if ($item->getChild('抽奖活动') === null) {
             $item->addChild('抽奖活动')
                 ->setAttribute('icon', 'fas fa-gift');
         }

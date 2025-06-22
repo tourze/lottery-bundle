@@ -56,7 +56,7 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     private ?bool $valid = null;
 
     #[ORM\Column(length: 100, nullable: true, enumType: ChanceStatusEnum::class, options: ['comment' => '状态'])]
-    private ?ChanceStatusEnum $status = ChanceStatusEnum::INIT;
+    private ChanceStatusEnum $status = ChanceStatusEnum::INIT;
 
     #[ORM\ManyToOne(targetEntity: Activity::class, cascade: ['persist'], inversedBy: 'chances')]
     #[ORM\JoinColumn(nullable: false)]
@@ -125,7 +125,7 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if ($this->getId() === null || $this->getId() === 0) {
             return '';
         }
 

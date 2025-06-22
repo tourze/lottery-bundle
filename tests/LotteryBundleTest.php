@@ -24,7 +24,6 @@ class LotteryBundleTest extends TestCase
     {
         $dependencies = LotteryBundle::getBundleDependencies();
         
-        $this->assertIsArray($dependencies);
         $this->assertNotEmpty($dependencies);
         
         // 验证关键依赖是否存在

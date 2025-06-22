@@ -54,12 +54,12 @@ class JoinLottery extends LockableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if (!$activity || $activity->getEndTime() < CarbonImmutable::now()) {
+        if ($activity === null || $activity->getEndTime() < CarbonImmutable::now()) {
             throw new ApiException('活动无效');
         }
 
         // 获取机会
-        /** @var Chance|null $chance */
+        /** @var Chance[] $chances */
         $chances = $this->chanceRepository->createQueryBuilder('a')
             ->where('a.user=:user AND a.activity=:activity AND a.valid=true')
             ->setParameter('user', $this->security->getUser())
@@ -67,7 +67,7 @@ class JoinLottery extends LockableProcedure
             ->setMaxResults($this->count)
             ->getQuery()
             ->getResult();
-        if (empty($chances)) {
+        if ($chances === [] || $chances === null) {
             throw new ApiException($this->textFormatter->formatText($activity->getNoChanceText() ?: '您已没有抽奖机会', ['activity' => $activity]));
             //            $chance = new Chance(); // todo 用于压测
             //            $chance->setActivity($activity);
@@ -82,12 +82,12 @@ class JoinLottery extends LockableProcedure
         $result = [];
         $i = 1;
         foreach ($chances as $chance) {
-            if ($chance->getUseTime()) {
+            if ($chance->getUseTime() !== null) {
                 throw new ApiException('机会已被消耗，请重试');
             }
 
             // 过期的话，在这里直接设置为过期
-            if ($chance->getExpireTime() && CarbonImmutable::now()->greaterThan($chance->getExpireTime())) {
+            if ($chance->getExpireTime() !== null && CarbonImmutable::now()->greaterThan($chance->getExpireTime())) {
                 $chance->setValid(false);
                 $this->entityManager->persist($chance);
                 $this->entityManager->flush();

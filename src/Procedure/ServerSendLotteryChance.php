@@ -15,25 +15,25 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[MethodTag('抽奖模块')]
+#[MethodTag(name: '抽奖模块')]
 #[Log]
-#[MethodDoc('服务端发送抽奖机会')]
-#[MethodExpose('ServerSendLotteryChance')]
+#[MethodDoc(summary: '服务端发送抽奖机会')]
+#[MethodExpose(method: 'ServerSendLotteryChance')]
 class ServerSendLotteryChance extends LockableProcedure
 {
-    #[MethodParam('抽奖活动ID')]
+    #[MethodParam(description: '抽奖活动ID')]
     public int $activityId;
 
-    #[MethodParam('用户唯一标志')]
+    #[MethodParam(description: '用户唯一标志')]
     public string $userIdentity;
 
-    #[MethodParam('获得机会的说明信息')]
+    #[MethodParam(description: '获得机会的说明信息')]
     public string $title = '';
 
-    #[MethodParam('有效开始时间，不传入则不限制')]
+    #[MethodParam(description: '有效开始时间，不传入则不限制')]
     public string $startTime;
 
-    #[MethodParam('结束时间，不传入则不限制')]
+    #[MethodParam(description: '结束时间，不传入则不限制')]
     public string $expireTime;
 
     public function __construct(

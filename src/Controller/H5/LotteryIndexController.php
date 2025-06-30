@@ -15,7 +15,7 @@ class LotteryIndexController extends AbstractController
     ) {
     }
 
-    #[Route('/h5/lottery', name: 'h5_lottery_index', methods: ['GET'])]
+    #[Route(path: '/h5/lottery', name: 'h5_lottery_index', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $activityId = $request->query->get('activity_id');

@@ -15,13 +15,13 @@ use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 
-#[MethodTag('抽奖模块')]
-#[MethodDoc('获取用户抽奖记录列表')]
-#[MethodExpose('GetUserLotteryChanceList')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodTag(name: '抽奖模块')]
+#[MethodDoc(summary: '获取用户抽奖记录列表')]
+#[MethodExpose(method: 'GetUserLotteryChanceList')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetUserLotteryChanceList extends BaseProcedure
 {
-    #[MethodParam('活动ID')]
+    #[MethodParam(description: '活动ID')]
     public int $activityId;
 
     public function __construct(

@@ -27,6 +27,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use LotteryBundle\Entity\Pool;
 use LotteryBundle\Entity\Prize;
+use LotteryBundle\Repository\PoolRepository;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -36,9 +37,8 @@ class PrizeCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly AdminUrlGenerator $adminUrlGenerator,
-    )
-    {
-    }
+        private readonly PoolRepository $poolRepository,
+    ) {}
 
     public static function getEntityFqcn(): string
     {
@@ -275,7 +275,7 @@ class PrizeCrudController extends AbstractCrudController
     /**
      * 返回奖池页面
      */
-    #[AdminAction('{entityId}/back-to-pool', 'admin_prize_back_to_pool')]
+    #[AdminAction(routeName: 'admin_prize_back_to_pool', routePath: '{entityId}/back-to-pool')]
     public function backToPoolAction(AdminContext $context): Response
     {
         // 获取池ID
@@ -305,8 +305,6 @@ class PrizeCrudController extends AbstractCrudController
      */
     private function getPoolById(int $id): ?Pool
     {
-        return $this->container->get('doctrine')
-            ->getRepository(Pool::class)
-            ->find($id);
+        return $this->poolRepository->find($id);
     }
 }

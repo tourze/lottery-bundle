@@ -21,16 +21,16 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 
-#[MethodTag('抽奖模块')]
-#[MethodDoc('获取所有的抽奖记录列表（展示用）')]
-#[MethodExpose('GetAllLotteryChance')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodTag(name: '抽奖模块')]
+#[MethodDoc(summary: '获取所有的抽奖记录列表（展示用）')]
+#[MethodExpose(method: 'GetAllLotteryChance')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetAllLotteryChance extends CacheableProcedure
 {
-    #[MethodParam('活动ID')]
+    #[MethodParam(description: '活动ID')]
     public string $activityId;
 
-    #[MethodParam('条数')]
+    #[MethodParam(description: '条数')]
     public int $pageSize = 50;
 
     public function __construct(

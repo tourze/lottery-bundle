@@ -23,17 +23,17 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\TextManageBundle\Service\TextFormatter;
 use Tourze\UserIDBundle\Model\SystemUser;
 
-#[MethodTag('抽奖模块')]
-#[MethodDoc('开始抽奖')]
-#[MethodExpose('JoinLottery')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodTag(name: '抽奖模块')]
+#[MethodDoc(summary: '开始抽奖')]
+#[MethodExpose(method: 'JoinLottery')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class JoinLottery extends LockableProcedure
 {
-    #[MethodParam('活动ID')]
+    #[MethodParam(description: '活动ID')]
     public int $activityId;
 
-    #[MethodParam('连续抽取次数')]
+    #[MethodParam(description: '连续抽取次数')]
     public int $count = 1;
 
     public function __construct(
@@ -45,8 +45,7 @@ class JoinLottery extends LockableProcedure
         private readonly Security $security,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly EntityManagerInterface $entityManager,
-    ) {
-    }
+    ) {}
 
     public function execute(): array
     {
@@ -68,7 +67,7 @@ class JoinLottery extends LockableProcedure
             ->getQuery()
             ->getResult();
         if ($chances === [] || $chances === null) {
-            throw new ApiException($this->textFormatter->formatText($activity->getNoChanceText() ?: '您已没有抽奖机会', ['activity' => $activity]));
+            throw new ApiException($this->textFormatter->formatText($activity->getNoChanceText() !== null ? $activity->getNoChanceText() : '您已没有抽奖机会', ['activity' => $activity]));
             //            $chance = new Chance(); // todo 用于压测
             //            $chance->setActivity($activity);
             //            $chance->setUser($this->security->getUser());
@@ -91,7 +90,7 @@ class JoinLottery extends LockableProcedure
                 $chance->setValid(false);
                 $this->entityManager->persist($chance);
                 $this->entityManager->flush();
-                throw new ApiException($this->textFormatter->formatText($activity->getNoChanceText() ?: '您已没有抽奖机会', ['activity' => $activity]));
+                throw new ApiException($this->textFormatter->formatText($activity->getNoChanceText() !== null ? $activity->getNoChanceText() : '您已没有抽奖机会', ['activity' => $activity]));
             }
 
             try {

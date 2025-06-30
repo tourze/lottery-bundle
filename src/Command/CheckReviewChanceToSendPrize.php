@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 
-#[AsCronTask('43 * * * *')]
+#[AsCronTask(expression: '43 * * * *')]
 #[AsCommand(name: self::NAME, description: '已审核的机会需要发奖')]
 class CheckReviewChanceToSendPrize extends Command
 {

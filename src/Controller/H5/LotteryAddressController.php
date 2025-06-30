@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class LotteryAddressController extends AbstractController
 {
-    #[Route('/h5/lottery/address', name: 'h5_lottery_address', methods: ['GET'])]
+    #[Route(path: '/h5/lottery/address', name: 'h5_lottery_address', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $chanceId = $request->query->get('chance_id');

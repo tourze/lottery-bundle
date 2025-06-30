@@ -16,26 +16,26 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[MethodTag('抽奖模块')]
-#[MethodDoc('保存抽奖地址')]
-#[MethodExpose('SaveOrUpdateLotteryConsignee')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodTag(name: '抽奖模块')]
+#[MethodDoc(summary: '保存抽奖地址')]
+#[MethodExpose(method: 'SaveOrUpdateLotteryConsignee')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class SaveOrUpdateLotteryConsignee extends LockableProcedure
 {
-    #[MethodParam('抽奖机会id')]
+    #[MethodParam(description: '抽奖机会id')]
     public int $chanceId;
 
-    #[MethodParam('抽奖地址ID')]
+    #[MethodParam(description: '抽奖地址ID')]
     public int $consigneeId = 0;
 
-    #[MethodParam('姓名')]
+    #[MethodParam(description: '姓名')]
     public string $realName;
 
-    #[MethodParam('手机号')]
+    #[MethodParam(description: '手机号')]
     public string $mobile;
 
-    #[MethodParam('地址')]
+    #[MethodParam(description: '地址')]
     public string $address;
 
     public function __construct(

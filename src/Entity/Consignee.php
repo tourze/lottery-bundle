@@ -21,7 +21,7 @@ class Consignee implements \Stringable, Itemable, PlainArrayInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '收货人ID'])]
-    private ?int $id = 0;
+    private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '姓名'])]
     private ?string $realName = null;

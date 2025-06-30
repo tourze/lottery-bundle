@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 /**
  * 机会相关函数
  */
-#[AutoconfigureTag('ecol.function.provider')]
+#[AutoconfigureTag(name: 'ecol.function.provider')]
 class ChanceFunctionProvider implements ExpressionFunctionProviderInterface
 {
     public function __construct(

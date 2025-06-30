@@ -8,7 +8,7 @@ use LotteryBundle\Repository\ActivityAttributeRepository;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
@@ -17,13 +17,9 @@ use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 #[ORM\UniqueConstraint(name: 'idx_uniq_activity_name', columns: ['activity_id', 'name'])]
 class ActivityAttribute implements \Stringable
 {
+    use SnowflakeKeyAware;
     use TimestampableAware;
     use BlameableAware;
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '属性'])]
     private ?string $name = null;
@@ -57,10 +53,6 @@ class ActivityAttribute implements \Stringable
         return "{$this->getName()}:{$this->getValue()}";
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getName(): ?string
     {

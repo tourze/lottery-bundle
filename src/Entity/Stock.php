@@ -20,7 +20,7 @@ class Stock implements \Stringable
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    private ?int $id = null;
 
     #[SnowflakeColumn]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '序列号'])]

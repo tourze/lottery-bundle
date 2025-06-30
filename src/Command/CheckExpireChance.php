@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 
-#[AsCronTask('* * * * *')]
+#[AsCronTask(expression: '* * * * *')]
 #[AsCommand(name: self::NAME, description: '检查过期的机会数据')]
 class CheckExpireChance extends Command
 {

@@ -9,7 +9,7 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
@@ -18,13 +18,9 @@ use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 #[ORM\UniqueConstraint(name: 'idx_uniq_pool_name', columns: ['pool_id', 'name'])]
 class PoolAttribute implements \Stringable, AdminArrayInterface
 {
+    use SnowflakeKeyAware;
     use TimestampableAware;
     use BlameableAware;
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '属性'])]
@@ -59,10 +55,6 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
         return "{$this->getName()}:{$this->getValue()}";
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getName(): ?string
     {

@@ -21,12 +21,12 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 
-#[MethodTag('抽奖模块')]
-#[MethodExpose('GetLotteryPrizeList')]
-#[MethodDoc('获取抽奖奖品列表')]
+#[MethodTag(name: '抽奖模块')]
+#[MethodExpose(method: 'GetLotteryPrizeList')]
+#[MethodDoc(summary: '获取抽奖奖品列表')]
 class GetLotteryPrizeList extends CacheableProcedure
 {
-    #[MethodParam('活动ID')]
+    #[MethodParam(description: '活动ID')]
     public string $activityId;
 
     public function __construct(

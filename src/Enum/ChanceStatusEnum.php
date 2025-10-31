@@ -12,23 +12,20 @@ enum ChanceStatusEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
     case INIT = 'init';
     case WINNING = 'winning';
     case SENT = 'sent';
     case REVIEWED = 'reviewed';
     case EXPIRED = 'expired';
-    case OTHER = ''; // 兼容历史数据无状态的情况
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::INIT => '未使用',
-            self::WINNING => '已中奖',
+            self::INIT => '初始化',
+            self::WINNING => '中奖',
+            self::SENT => '已发送',
             self::REVIEWED => '已审核',
-            self::SENT => '已发奖',
             self::EXPIRED => '已过期',
-            self::OTHER => '',
         };
     }
 }

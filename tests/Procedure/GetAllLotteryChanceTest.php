@@ -3,63 +3,40 @@
 namespace LotteryBundle\Tests\Procedure;
 
 use LotteryBundle\Procedure\GetAllLotteryChance;
-use LotteryBundle\Repository\ActivityRepository;
-use LotteryBundle\Repository\ChanceRepository;
-use PHPUnit\Framework\TestCase;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 
-class GetAllLotteryChanceTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(GetAllLotteryChance::class)]
+#[RunTestsInSeparateProcesses]
+final class GetAllLotteryChanceTest extends AbstractProcedureTestCase
 {
-    public function test_constructor_createsInstance(): void
+    protected function onSetUp(): void
     {
-        $activityRepository = $this->createMock(ActivityRepository::class);
-        $chanceRepository = $this->createMock(ChanceRepository::class);
-        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $security = $this->createMock(Security::class);
+        // 子类特定的初始化逻辑
+    }
 
-        $procedure = new GetAllLotteryChance(
-            $activityRepository,
-            $chanceRepository,
-            $eventDispatcher,
-            $security
-        );
-
+    public function testServiceExists(): void
+    {
+        $procedure = self::getService(GetAllLotteryChance::class);
         $this->assertInstanceOf(GetAllLotteryChance::class, $procedure);
         $this->assertInstanceOf(CacheableProcedure::class, $procedure);
     }
 
-    public function test_defaultProperties_haveCorrectValues(): void
+    public function testDefaultPropertiesHaveCorrectValues(): void
     {
-        $activityRepository = $this->createMock(ActivityRepository::class);
-        $chanceRepository = $this->createMock(ChanceRepository::class);
-        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $security = $this->createMock(Security::class);
-
-        $procedure = new GetAllLotteryChance(
-            $activityRepository,
-            $chanceRepository,
-            $eventDispatcher,
-            $security
-        );
+        $procedure = self::getService(GetAllLotteryChance::class);
 
         $this->assertSame(50, $procedure->pageSize);
     }
 
-    public function test_setProperties_worksCorrectly(): void
+    public function testSetPropertiesWorksCorrectly(): void
     {
-        $activityRepository = $this->createMock(ActivityRepository::class);
-        $chanceRepository = $this->createMock(ChanceRepository::class);
-        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $security = $this->createMock(Security::class);
-
-        $procedure = new GetAllLotteryChance(
-            $activityRepository,
-            $chanceRepository,
-            $eventDispatcher,
-            $security
-        );
+        $procedure = self::getService(GetAllLotteryChance::class);
 
         $procedure->activityId = 'test-activity';
         $procedure->pageSize = 100;
@@ -67,4 +44,13 @@ class GetAllLotteryChanceTest extends TestCase
         $this->assertSame('test-activity', $procedure->activityId);
         $this->assertSame(100, $procedure->pageSize);
     }
-} 
+
+    public function testExecute(): void
+    {
+        $procedure = self::getService(GetAllLotteryChance::class);
+
+        $reflection = new \ReflectionMethod($procedure, 'execute');
+        $this->assertTrue($reflection->isPublic());
+        $this->assertEquals('array', $reflection->getReturnType()?->__toString());
+    }
+}

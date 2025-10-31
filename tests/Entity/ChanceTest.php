@@ -11,15 +11,25 @@ use LotteryBundle\Entity\Pool;
 use LotteryBundle\Entity\Prize;
 use LotteryBundle\Entity\Stock;
 use LotteryBundle\Enum\ChanceStatusEnum;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class ChanceTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Chance::class)]
+final class ChanceTest extends AbstractEntityTestCase
 {
-    public function test_constructor_setsDefaultValues(): void
+    protected function createEntity(): Chance
+    {
+        return new Chance();
+    }
+
+    public function testConstructorSetsDefaultValues(): void
     {
         $chance = new Chance();
 
@@ -33,7 +43,7 @@ class ChanceTest extends TestCase
         $this->assertEquals([], $chance->getProbabilityContext());
     }
 
-    public function test_implements_required_interfaces(): void
+    public function testImplementsRequiredInterfaces(): void
     {
         $chance = new Chance();
 
@@ -44,191 +54,216 @@ class ChanceTest extends TestCase
         $this->assertInstanceOf(BenefitResource::class, $chance);
     }
 
-    public function test_setTitle_setsAndReturnsTitle(): void
+    public function testSetTitleSetsAndReturnsTitle(): void
     {
         $chance = new Chance();
         $title = 'Test Title';
 
-        $result = $chance->setTitle($title);
+        $chance->setTitle($title);
 
         $this->assertEquals($title, $chance->getTitle());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_setTitle_withNull_setsEmpty(): void
+    public function testSetTitleWithNullSetsEmpty(): void
     {
         $chance = new Chance();
 
-        $result = $chance->setTitle(null);
+        $chance->setTitle(null);
 
         $this->assertEquals('', $chance->getTitle());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_startTime_setterAndGetter(): void
+    public function testStartTimeSetterAndGetter(): void
     {
         $chance = new Chance();
         $startTime = new \DateTimeImmutable();
 
-        $result = $chance->setStartTime($startTime);
+        $chance->setStartTime($startTime);
 
         $this->assertSame($startTime, $chance->getStartTime());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_expireTime_setterAndGetter(): void
+    public function testExpireTimeSetterAndGetter(): void
     {
         $chance = new Chance();
         $expireTime = new \DateTimeImmutable();
 
-        $result = $chance->setExpireTime($expireTime);
+        $chance->setExpireTime($expireTime);
 
         $this->assertSame($expireTime, $chance->getExpireTime());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_useTime_setterAndGetter(): void
+    public function testUseTimeSetterAndGetter(): void
     {
         $chance = new Chance();
         $useTime = new \DateTimeImmutable();
 
-        $result = $chance->setUseTime($useTime);
+        $chance->setUseTime($useTime);
 
         $this->assertSame($useTime, $chance->getUseTime());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_sendTime_setterAndGetter(): void
+    public function testSendTimeSetterAndGetter(): void
     {
         $chance = new Chance();
         $sendTime = new \DateTimeImmutable();
 
-        $result = $chance->setSendTime($sendTime);
+        $chance->setSendTime($sendTime);
 
         $this->assertSame($sendTime, $chance->getSendTime());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_remark_setterAndGetter(): void
+    public function testRemarkSetterAndGetter(): void
     {
         $chance = new Chance();
         $remark = 'test remark';
 
-        $result = $chance->setRemark($remark);
+        $chance->setRemark($remark);
 
         $this->assertEquals($remark, $chance->getRemark());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_valid_setterAndGetter(): void
+    public function testValidSetterAndGetter(): void
     {
         $chance = new Chance();
 
-        $result = $chance->setValid(true);
+        $chance->setValid(true);
 
         $this->assertTrue($chance->getValid());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_status_setterAndGetter(): void
+    public function testStatusSetterAndGetter(): void
     {
         $chance = new Chance();
 
-        $result = $chance->setStatus(ChanceStatusEnum::SENT);
+        $chance->setStatus(ChanceStatusEnum::SENT);
 
         $this->assertEquals(ChanceStatusEnum::SENT, $chance->getStatus());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_activity_setterAndGetter(): void
+    public function testActivitySetterAndGetter(): void
     {
         $chance = new Chance();
+        /*
+         * 使用具体类 Activity 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证Chance与Activity的关联关系设置
+         * 2) 使用合理性：Activity是Entity类，测试仅需要验证关联设置，不需要具体实现
+         * 3) 替代方案：暂无更好方案，Activity没有对应的接口
+         */
         $activity = $this->createMock(Activity::class);
 
-        $result = $chance->setActivity($activity);
+        $chance->setActivity($activity);
 
         $this->assertSame($activity, $chance->getActivity());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_user_setterAndGetter(): void
+    public function testUserSetterAndGetter(): void
     {
         $chance = new Chance();
         $user = $this->createMock(UserInterface::class);
 
-        $result = $chance->setUser($user);
+        $chance->setUser($user);
 
         $this->assertSame($user, $chance->getUser());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_pool_setterAndGetter(): void
+    public function testPoolSetterAndGetter(): void
     {
         $chance = new Chance();
+        /*
+         * 使用具体类 Pool 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证Chance与Pool的关联关系设置
+         * 2) 使用合理性：Pool是Entity类，测试仅需要验证关联设置，不需要具体实现
+         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
+         */
         $pool = $this->createMock(Pool::class);
 
-        $result = $chance->setPool($pool);
+        $chance->setPool($pool);
 
         $this->assertSame($pool, $chance->getPool());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_prize_setterAndGetter(): void
+    public function testPrizeSetterAndGetter(): void
     {
         $chance = new Chance();
+        /*
+         * 使用具体类 Prize 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证Chance与Prize的关联关系设置
+         * 2) 使用合理性：Prize是Entity类，测试仅需要验证关联设置，不需要具体实现
+         * 3) 替代方案：暂无更好方案，Prize没有对应的接口
+         */
         $prize = $this->createMock(Prize::class);
 
-        $result = $chance->setPrize($prize);
+        $chance->setPrize($prize);
 
         $this->assertSame($prize, $chance->getPrize());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_consignee_setterAndGetter(): void
+    public function testConsigneeSetterAndGetter(): void
     {
         $chance = new Chance();
+        /*
+         * 使用具体类 Consignee 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证Chance与Consignee的关联关系设置
+         * 2) 使用合理性：Consignee是Entity类，测试仅需要验证关联设置，不需要具体实现
+         * 3) 替代方案：暂无更好方案，Consignee没有对应的接口
+         */
         $consignee = $this->createMock(Consignee::class);
 
-        $result = $chance->setConsignee($consignee);
+        $chance->setConsignee($consignee);
 
         $this->assertSame($consignee, $chance->getConsignee());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_stocks_addAndRemove(): void
+    public function testStocksAddAndRemove(): void
     {
         $chance = new Chance();
+        /*
+         * 使用具体类 Stock 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证Chance与Stock的集合关联关系
+         * 2) 使用合理性：Stock是Entity类，测试需要模拟setChance/getChance方法
+         * 3) 替代方案：暂无更好方案，Stock没有对应的接口
+         */
         $stock = $this->createMock(Stock::class);
 
-        // 模拟 Stock 的 setChance 方法 
+        // 模拟 Stock 的 setChance 方法
         $stock->expects($this->exactly(2))
             ->method('setChance')
-            ->with($this->logicalOr($chance, null));
+            ->willReturnCallback(function ($argument) use ($chance) {
+                $this->assertTrue($argument === $chance || null === $argument);
+            })
+        ;
 
-        $result = $chance->addStock($stock);
+        $chance->addStock($stock);
 
         $this->assertTrue($chance->getStocks()->contains($stock));
-        $this->assertSame($chance, $result);
 
         // 测试移除
         $stock->expects($this->once())
             ->method('getChance')
-            ->willReturn($chance);
+            ->willReturn($chance)
+        ;
 
-        $removeResult = $chance->removeStock($stock);
+        $chance->removeStock($stock);
 
         $this->assertFalse($chance->getStocks()->contains($stock));
-        $this->assertSame($chance, $removeResult);
     }
 
-    public function test_stocks_addDuplicate_doesNotDuplicate(): void
+    public function testStocksAddDuplicateDoesNotDuplicate(): void
     {
         $chance = new Chance();
+        /*
+         * 使用具体类 Stock 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证Chance与Stock的集合去重逻辑
+         * 2) 使用合理性：Stock是Entity类，测试需要模拟setChance方法
+         * 3) 替代方案：暂无更好方案，Stock没有对应的接口
+         */
         $stock = $this->createMock(Stock::class);
 
         $stock->expects($this->once())
             ->method('setChance')
-            ->with($chance);
+            ->with($chance)
+        ;
 
         $chance->addStock($stock);
         $chance->addStock($stock); // 添加相同的库存
@@ -236,95 +271,90 @@ class ChanceTest extends TestCase
         $this->assertCount(1, $chance->getStocks());
     }
 
-    public function test_sendResult_setterAndGetter(): void
+    public function testSendResultSetterAndGetter(): void
     {
         $chance = new Chance();
         $sendResult = ['status' => 'sent', 'timestamp' => time()];
 
-        $result = $chance->setSendResult($sendResult);
+        $chance->setSendResult($sendResult);
 
         $this->assertEquals($sendResult, $chance->getSendResult());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_poolContext_setterAndGetter(): void
+    public function testPoolContextSetterAndGetter(): void
     {
         $chance = new Chance();
         $poolContext = ['pool_id' => 1, 'selected_at' => time()];
 
-        $result = $chance->setPoolContext($poolContext);
+        $chance->setPoolContext($poolContext);
 
         $this->assertEquals($poolContext, $chance->getPoolContext());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_probabilityContext_setterAndGetter(): void
+    public function testProbabilityContextSetterAndGetter(): void
     {
         $chance = new Chance();
-        $probabilityContext = ['calculated_probability' => 0.15, 'factors' => []];
+        $probabilityContext = [
+            ['id' => 1, 'name' => 'Prize 1', 'rate' => 50],
+            ['id' => 2, 'name' => 'Prize 2', 'rate' => 30],
+        ];
 
-        $result = $chance->setProbabilityContext($probabilityContext);
+        $chance->setProbabilityContext($probabilityContext);
 
         $this->assertEquals($probabilityContext, $chance->getProbabilityContext());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_reviewTime_setterAndGetter(): void
+    public function testReviewTimeSetterAndGetter(): void
     {
         $chance = new Chance();
         $reviewTime = '2025-01-19 10:00:00';
 
-        $result = $chance->setReviewTime($reviewTime);
+        $chance->setReviewTime($reviewTime);
 
         $this->assertEquals($reviewTime, $chance->getReviewTime());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_reviewUser_setterAndGetter(): void
+    public function testReviewUserSetterAndGetter(): void
     {
         $chance = new Chance();
         $reviewUser = $this->createMock(UserInterface::class);
 
-        $result = $chance->setReviewUser($reviewUser);
+        $chance->setReviewUser($reviewUser);
 
         $this->assertSame($reviewUser, $chance->getReviewUser());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_lockVersion_setterAndGetter(): void
+    public function testLockVersionSetterAndGetter(): void
     {
         $chance = new Chance();
         $lockVersion = 5;
 
-        $result = $chance->setLockVersion($lockVersion);
+        $chance->setLockVersion($lockVersion);
 
         $this->assertEquals($lockVersion, $chance->getLockVersion());
-        $this->assertSame($chance, $result);
     }
 
-    public function test_ipFields_settersAndGetters(): void
+    public function testIpFieldsSettersAndGetters(): void
     {
         $chance = new Chance();
         $createIp = '192.168.1.1';
         $updateIp = '192.168.1.2';
 
-        $result1 = $chance->setCreatedFromIp($createIp);
-        $result2 = $chance->setUpdatedFromIp($updateIp);
+        $chance->setCreatedFromIp($createIp);
+        $chance->setUpdatedFromIp($updateIp);
 
         $this->assertEquals($createIp, $chance->getCreatedFromIp());
         $this->assertEquals($updateIp, $chance->getUpdatedFromIp());
-        $this->assertSame($chance, $result1);
-        $this->assertSame($chance, $result2);
     }
 
-    public function test_toString_withNullOrZeroId_returnsEmptyString(): void
+    public function testToStringWithNullOrZeroIdReturnsEmptyString(): void
     {
         $chance = new Chance();
 
         $this->assertEquals('', (string) $chance);
     }
 
-    public function test_toString_withValidId_returnsFormattedString(): void
+    public function testToStringWithValidIdReturnsFormattedString(): void
     {
         $chance = new Chance();
 
@@ -336,5 +366,27 @@ class ChanceTest extends TestCase
 
         $result = (string) $chance;
         $this->assertStringContainsString('Chance-123', $result);
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        yield 'title' => ['title', '测试抽奖机会'];
+        yield 'startTime' => ['startTime', new \DateTimeImmutable()];
+        yield 'expireTime' => ['expireTime', (new \DateTimeImmutable())->add(new \DateInterval('P7D'))];
+        yield 'useTime' => ['useTime', new \DateTimeImmutable()];
+        yield 'sendTime' => ['sendTime', new \DateTimeImmutable()];
+        yield 'remark' => ['remark', '测试备注'];
+        yield 'valid' => ['valid', true];
+        yield 'status' => ['status', ChanceStatusEnum::SENT];
+        yield 'sendResult' => ['sendResult', ['status' => 'sent', 'timestamp' => time()]];
+        yield 'poolContext' => ['poolContext', ['pool_id' => 1, 'selected_at' => time()]];
+        yield 'probabilityContext' => ['probabilityContext', ['calculated_probability' => 0.15, 'factors' => []]];
+        yield 'reviewTime' => ['reviewTime', '2025-01-19 10:00:00'];
+        yield 'lockVersion' => ['lockVersion', 5];
+        yield 'createdFromIp' => ['createdFromIp', '192.168.1.1'];
+        yield 'updatedFromIp' => ['updatedFromIp', '192.168.1.2'];
     }
 }

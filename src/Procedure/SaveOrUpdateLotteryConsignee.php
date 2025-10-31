@@ -3,6 +3,7 @@
 namespace LotteryBundle\Procedure;
 
 use Doctrine\ORM\EntityManagerInterface;
+use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Consignee;
 use LotteryBundle\Repository\ChanceRepository;
 use LotteryBundle\Repository\ConsigneeRepository;
@@ -52,16 +53,16 @@ class SaveOrUpdateLotteryConsignee extends LockableProcedure
             'id' => $this->chanceId,
             'user' => $this->security->getUser(),
         ]);
-        if ($chance === null) {
+        if (null === $chance) {
             throw new ApiException('抽奖信息错误');
         }
 
         $consignee = $this->consigneeRepository->find($this->consigneeId);
-        if ($consignee === null) {
+        if (null === $consignee) {
             $consignee = $this->consigneeRepository->findOneBy([
                 'chance' => $chance,
             ]);
-            if ($consignee === null) {
+            if (null === $consignee) {
                 $consignee = new Consignee();
             }
         }

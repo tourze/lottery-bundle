@@ -4,12 +4,23 @@ namespace LotteryBundle\Tests\Entity;
 
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Consignee;
-use PHPUnit\Framework\TestCase;
-use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\Arrayable\PlainArrayInterface;
+use Tourze\EnumExtra\Itemable;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class ConsigneeTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Consignee::class)]
+final class ConsigneeTest extends AbstractEntityTestCase
 {
-    public function test_constructor_setsDefaultValues(): void
+    protected function createEntity(): Consignee
+    {
+        return new Consignee();
+    }
+
+    public function testConstructorSetsDefaultValues(): void
     {
         $consignee = new Consignee();
 
@@ -22,83 +33,82 @@ class ConsigneeTest extends TestCase
         $this->assertNull($consignee->getUpdatedFromIp());
     }
 
-    public function test_setRealName_setsAndGetsValue(): void
+    public function testSetRealNameSetsAndGetsValue(): void
     {
         $consignee = new Consignee();
         $testName = '张三';
 
-        $result = $consignee->setRealName($testName);
+        $consignee->setRealName($testName);
 
-        $this->assertSame($consignee, $result);
         $this->assertSame($testName, $consignee->getRealName());
     }
 
-    public function test_setMobile_setsAndGetsValue(): void
+    public function testSetMobileSetsAndGetsValue(): void
     {
         $consignee = new Consignee();
         $testMobile = '13800138000';
 
-        $result = $consignee->setMobile($testMobile);
+        $consignee->setMobile($testMobile);
 
-        $this->assertSame($consignee, $result);
         $this->assertSame($testMobile, $consignee->getMobile());
     }
 
-    public function test_setAddress_setsAndGetsValue(): void
+    public function testSetAddressSetsAndGetsValue(): void
     {
         $consignee = new Consignee();
         $testAddress = '北京市朝阳区某某街道123号';
 
-        $result = $consignee->setAddress($testAddress);
+        $consignee->setAddress($testAddress);
 
-        $this->assertSame($consignee, $result);
         $this->assertSame($testAddress, $consignee->getAddress());
     }
 
-    public function test_setChance_setsAndGetsValue(): void
+    public function testSetChanceSetsAndGetsValue(): void
     {
         $consignee = new Consignee();
+        /*
+         * 使用具体类 Chance 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证Consignee与Chance的关联关系设置
+         * 2) 使用合理性：Chance是Entity类，测试仅需要验证关联设置，不需要具体实现
+         * 3) 替代方案：暂无更好方案，Chance没有对应的接口
+         */
         $chance = $this->createMock(Chance::class);
 
-        $result = $consignee->setChance($chance);
-
-        $this->assertSame($consignee, $result);
+        $consignee->setChance($chance);
         $this->assertSame($chance, $consignee->getChance());
     }
 
-    public function test_setCreatedFromIp_setsAndGetsValue(): void
+    public function testSetCreatedFromIpSetsAndGetsValue(): void
     {
         $consignee = new Consignee();
         $testIp = '192.168.1.1';
 
-        $result = $consignee->setCreatedFromIp($testIp);
+        $consignee->setCreatedFromIp($testIp);
 
-        $this->assertSame($consignee, $result);
         $this->assertSame($testIp, $consignee->getCreatedFromIp());
     }
 
-    public function test_setUpdatedFromIp_setsAndGetsValue(): void
+    public function testSetUpdatedFromIpSetsAndGetsValue(): void
     {
         $consignee = new Consignee();
         $testIp = '192.168.1.2';
 
-        $result = $consignee->setUpdatedFromIp($testIp);
+        $consignee->setUpdatedFromIp($testIp);
 
-        $this->assertSame($consignee, $result);
         $this->assertSame($testIp, $consignee->getUpdatedFromIp());
     }
 
-    public function test_toString_withNullId_returnsEmptyString(): void
+    public function testToStringWithNullIdReturnsEmptyString(): void
     {
         $consignee = new Consignee();
 
         $this->assertSame('', $consignee->__toString());
     }
 
-    public function test_toString_withZeroId_returnsEmptyString(): void
+    public function testToStringWithZeroIdReturnsEmptyString(): void
     {
         $consignee = new Consignee();
-        $reflection = new ReflectionClass($consignee);
+        $reflection = new \ReflectionClass($consignee);
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
         $idProperty->setValue($consignee, 0);
@@ -106,54 +116,54 @@ class ConsigneeTest extends TestCase
         $this->assertSame('', $consignee->__toString());
     }
 
-    public function test_toString_withValidId_returnsFormattedString(): void
+    public function testToStringWithValidIdReturnsFormattedString(): void
     {
         $consignee = new Consignee();
-        $reflection = new ReflectionClass($consignee);
+        $reflection = new \ReflectionClass($consignee);
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
         $idProperty->setValue($consignee, 1);
 
-        $consignee->setRealName('张三')
-            ->setMobile('13800138000')
-            ->setAddress('北京市朝阳区某某街道123号');
+        $consignee->setRealName('张三');
+        $consignee->setMobile('13800138000');
+        $consignee->setAddress('北京市朝阳区某某街道123号');
 
         $expected = '张三 13800138000 北京市朝阳区某某街道123号';
         $this->assertSame($expected, $consignee->__toString());
     }
 
-    public function test_implementsStringable(): void
+    public function testImplementsStringable(): void
     {
         $consignee = new Consignee();
 
         $this->assertInstanceOf(\Stringable::class, $consignee);
     }
 
-    public function test_implementsItemable(): void
+    public function testImplementsItemable(): void
     {
         $consignee = new Consignee();
 
-        $this->assertInstanceOf(\Tourze\EnumExtra\Itemable::class, $consignee);
+        $this->assertInstanceOf(Itemable::class, $consignee);
     }
 
-    public function test_implementsPlainArrayInterface(): void
+    public function testImplementsPlainArrayInterface(): void
     {
         $consignee = new Consignee();
 
-        $this->assertInstanceOf(\Tourze\Arrayable\PlainArrayInterface::class, $consignee);
+        $this->assertInstanceOf(PlainArrayInterface::class, $consignee);
     }
 
-    public function test_toSelectItem_returnsCorrectArray(): void
+    public function testToSelectItemReturnsCorrectArray(): void
     {
         $consignee = new Consignee();
-        $reflection = new ReflectionClass($consignee);
+        $reflection = new \ReflectionClass($consignee);
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
         $idProperty->setValue($consignee, 1);
 
-        $consignee->setRealName('张三')
-            ->setMobile('13800138000')
-            ->setAddress('北京市朝阳区某某街道123号');
+        $consignee->setRealName('张三');
+        $consignee->setMobile('13800138000');
+        $consignee->setAddress('北京市朝阳区某某街道123号');
 
         $result = $consignee->toSelectItem();
         $expected = '张三 13800138000 北京市朝阳区某某街道123号';
@@ -164,12 +174,12 @@ class ConsigneeTest extends TestCase
         $this->assertSame($expected, $result['name']);
     }
 
-    public function test_retrievePlainArray_returnsCorrectArray(): void
+    public function testRetrievePlainArrayReturnsCorrectArray(): void
     {
         $consignee = new Consignee();
-        $consignee->setRealName('张三')
-            ->setMobile('13800138000')
-            ->setAddress('北京市朝阳区某某街道123号');
+        $consignee->setRealName('张三');
+        $consignee->setMobile('13800138000');
+        $consignee->setAddress('北京市朝阳区某某街道123号');
 
         $result = $consignee->retrievePlainArray();
 
@@ -179,7 +189,7 @@ class ConsigneeTest extends TestCase
         $this->assertCount(3, $result);
     }
 
-    public function test_setRealName_withEmptyString_setsValue(): void
+    public function testSetRealNameWithEmptyStringSetsValue(): void
     {
         $consignee = new Consignee();
 
@@ -188,7 +198,7 @@ class ConsigneeTest extends TestCase
         $this->assertSame('', $consignee->getRealName());
     }
 
-    public function test_setMobile_withEmptyString_setsValue(): void
+    public function testSetMobileWithEmptyStringSetsValue(): void
     {
         $consignee = new Consignee();
 
@@ -197,7 +207,7 @@ class ConsigneeTest extends TestCase
         $this->assertSame('', $consignee->getMobile());
     }
 
-    public function test_setAddress_withEmptyString_setsValue(): void
+    public function testSetAddressWithEmptyStringSetsValue(): void
     {
         $consignee = new Consignee();
 
@@ -206,7 +216,7 @@ class ConsigneeTest extends TestCase
         $this->assertSame('', $consignee->getAddress());
     }
 
-    public function test_setCreatedFromIp_withNull_setsValue(): void
+    public function testSetCreatedFromIpWithNullSetsValue(): void
     {
         $consignee = new Consignee();
 
@@ -215,12 +225,24 @@ class ConsigneeTest extends TestCase
         $this->assertNull($consignee->getCreatedFromIp());
     }
 
-    public function test_setUpdatedFromIp_withNull_setsValue(): void
+    public function testSetUpdatedFromIpWithNullSetsValue(): void
     {
         $consignee = new Consignee();
 
         $consignee->setUpdatedFromIp(null);
 
         $this->assertNull($consignee->getUpdatedFromIp());
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        yield 'realName' => ['realName', '张三'];
+        yield 'mobile' => ['mobile', '13800138000'];
+        yield 'address' => ['address', '北京市朝阳区某某街道123号'];
+        yield 'createdFromIp' => ['createdFromIp', '192.168.1.1'];
+        yield 'updatedFromIp' => ['updatedFromIp', '192.168.1.2'];
     }
 }

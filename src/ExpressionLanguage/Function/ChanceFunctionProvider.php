@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Service\LotteryService;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
@@ -18,6 +19,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * 机会相关函数
  */
 #[AutoconfigureTag(name: 'ecol.function.provider')]
+#[WithMonologChannel(channel: 'lottery')]
 class ChanceFunctionProvider implements ExpressionFunctionProviderInterface
 {
     public function __construct(
@@ -29,29 +31,61 @@ class ChanceFunctionProvider implements ExpressionFunctionProviderInterface
     public function getFunctions(): array
     {
         return [
-            new ExpressionFunction('getLotteryValidChannelCount', fn (...$args) => sprintf('\%s(%s)', 'getLotteryValidChannelCount', implode(', ', $args)), function ($values, ...$args) {
-                $this->logger->debug('getLotteryValidChannelCount', [
-                    'values' => $values,
-                    'args' => $args,
-                ]);
+            new ExpressionFunction(
+                'getLotteryValidChannelCount',
+                fn (...$args) => sprintf('\%s(%s)', 'getLotteryValidChannelCount', implode(', ', is_array($args) ? $args : [])),
+                function ($values, ...$args) {
+                    $this->logger->debug('getLotteryValidChannelCount', [
+                        'values' => $values,
+                        'args' => $args,
+                    ]);
 
-                return $this->getLotteryValidChannelCount($values, ...$args);
-            }),
+                    assert(is_array($values), 'Values must be an array');
+                    assert(isset($args[0]) && $args[0] instanceof UserInterface, 'First argument must be UserInterface');
+                    assert(isset($args[1]) && $args[1] instanceof Activity, 'Second argument must be Activity');
+                    /** @var array<string, mixed> $values */
+                    /** @var UserInterface $user */
+                    $user = $args[0];
+                    /** @var Activity $activity */
+                    $activity = $args[1];
 
-            new ExpressionFunction('giveLotteryChannel', fn (...$args) => sprintf('\%s(%s)', 'giveLotteryChannel', implode(', ', $args)), function ($values, ...$args) {
-                $this->logger->debug('giveLotteryChannel', [
-                    'values' => $values,
-                    'args' => $args,
-                ]);
+                    return $this->getLotteryValidChannelCount($values, $user, $activity);
+                }
+            ),
 
-                return $this->giveLotteryChannel($values, ...$args);
-            }),
+            new ExpressionFunction(
+                'giveLotteryChannel',
+                fn (...$args) => sprintf('\%s(%s)', 'giveLotteryChannel', implode(', ', is_array($args) ? $args : [])),
+                function ($values, ...$args) {
+                    $this->logger->debug('giveLotteryChannel', [
+                        'values' => $values,
+                        'args' => $args,
+                    ]);
+
+                    assert(is_array($values), 'Values must be an array');
+                    assert(isset($args[0]) && $args[0] instanceof UserInterface, 'First argument must be UserInterface');
+                    assert(isset($args[1]) && $args[1] instanceof Activity, 'Second argument must be Activity');
+                    assert(isset($args[2]) && (is_string($args[2]) || $args[2] instanceof \DateTimeInterface), 'Third argument must be string or DateTimeInterface');
+                    /** @var array<string, mixed> $values */
+                    /** @var UserInterface $user */
+                    $user = $args[0];
+                    /** @var Activity $activity */
+                    $activity = $args[1];
+                    /** @var string|\DateTimeInterface $expireTime */
+                    $expireTime = $args[2];
+
+                    return $this->giveLotteryChannel($values, $user, $activity, $expireTime);
+                }
+            ),
         ];
     }
 
     /**
      * 获取指定用户指定用户的有效抽奖次数
      * 使用例子： getLotteryValidChannelCount(user, activity)
+     */
+    /**
+     * @param array<string, mixed> $values
      */
     public function getLotteryValidChannelCount(array $values, UserInterface $user, Activity $activity): int
     {
@@ -67,6 +101,9 @@ class ChanceFunctionProvider implements ExpressionFunctionProviderInterface
      * 使用例子： giveLotteryChannel(user, activity)
      *
      * @param string|CarbonInterface|\DateTimeInterface $expireTime 过期时间
+     */
+    /**
+     * @param array<string, mixed> $values
      */
     public function giveLotteryChannel(
         array $values,

@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Controller\Admin;
 
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
+use EasyCorp\Bundle\EasyAdminBundle\Contracts\Field\FieldInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -25,6 +29,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\NumericFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use LotteryBundle\Controller\Admin\PoolCrudController;
 use LotteryBundle\Entity\Pool;
 use LotteryBundle\Entity\Prize;
 use LotteryBundle\Repository\PoolRepository;
@@ -32,16 +37,28 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * 奖品管理控制器
+ *
+ * @template TEntity of Prize
+ * @extends AbstractCrudController<TEntity>
  */
-class PrizeCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/lottery/prize',
+    routeName: 'lottery_prize',
+)]
+final class PrizeCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly PoolRepository $poolRepository,
-    ) {}
+    ) {
+    }
 
+    /**
+     * @phpstan-return class-string<TEntity>
+     */
     public static function getEntityFqcn(): string
     {
+        /** @phpstan-var class-string<TEntity> */
         return Prize::class;
     }
 
@@ -52,154 +69,211 @@ class PrizeCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('奖品列表')
             ->setPageTitle('index', '奖品管理')
             ->setPageTitle('new', '创建奖品')
-            ->setPageTitle('edit', fn(Prize $prize) => sprintf('编辑奖品: %s', $prize->getName()))
-            ->setPageTitle('detail', fn(Prize $prize) => sprintf('奖品详情: %s', $prize->getName()))
+            ->setPageTitle('edit', fn (Prize $prize) => sprintf('编辑奖品: %s', $prize->getName() ?? 'Unknown'))
+            ->setPageTitle('detail', fn (Prize $prize) => sprintf('奖品详情: %s', $prize->getName() ?? 'Unknown'))
             ->setHelp('index', '这里列出了所有的奖品，奖品归属于特定奖池')
             ->setDefaultSort(['id' => 'DESC'])
-            ->setSearchFields(['id', 'name', 'content', 'type']);
+            ->setSearchFields(['id', 'name', 'content', 'type'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
-        $referrerPoolId = $this->getContext()->getRequest()->query->get('referrerPoolId');
+        $context = $this->getContext();
+        $request = $context?->getRequest();
+        $referrerPoolId = $request?->query->getInt('referrerPoolId');
 
-        // ID字段
-        yield IdField::new('id')
+        // ID字段始终显示在所有标签页上
+        yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
+            ->setMaxLength(9999)
+        ;
 
-        // 表单分组为标签页，但仅适用于表单页面
+        yield from $this->getBasicInfoFields($pageName);
+        yield from $this->getQuantityAndProbabilityFields($pageName);
+        yield from $this->getImageFields($pageName);
+        yield from $this->getConfigurationFields($pageName);
+        yield from $this->getAssociationFields($pageName, $referrerPoolId);
+        yield from $this->getAuditFields($pageName);
+    }
+
+    /**
+     * @return iterable<FieldInterface>
+     */
+    private function getBasicInfoFields(string $pageName): iterable
+    {
         if (Crud::PAGE_INDEX !== $pageName && Crud::PAGE_DETAIL !== $pageName) {
-            // 基本信息标签页
             yield FormField::addTab('基本信息')
-                ->setIcon('fas fa-info-circle');
+                ->setIcon('fas fa-info-circle')
+            ;
         }
 
-        // 基本信息
         yield TextField::new('name', '奖品名称')
-            ->setRequired(true);
+            ->setRequired(true)
+        ;
 
         yield TextareaField::new('content', '奖品描述')
             ->hideOnIndex()
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield TextField::new('type', '类型')
-            ->setRequired(true);
+            ->setRequired(true)
+        ;
 
         yield TextField::new('typeId', '类型值ID')
             ->hideOnIndex()
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
+    }
 
+    /**
+     * @return iterable<FieldInterface>
+     */
+    private function getQuantityAndProbabilityFields(string $pageName): iterable
+    {
         if (Crud::PAGE_INDEX !== $pageName && Crud::PAGE_DETAIL !== $pageName) {
-            // 数量与概率标签页
             yield FormField::addTab('数量与概率')
-                ->setIcon('fas fa-chart-bar');
+                ->setIcon('fas fa-chart-bar')
+            ;
         }
 
-        // 奖品数量与概率
         yield IntegerField::new('amount', '单次派发数量')
             ->hideOnIndex()
             ->setRequired(false)
-            ->setHelp('单次抽中派发的数量，默认为1');
+            ->setHelp('单次抽中派发的数量，默认为1')
+        ;
 
         yield IntegerField::new('quantity', '总数量')
-            ->setRequired(true);
+            ->setRequired(true)
+        ;
 
         yield IntegerField::new('dayLimit', '每日数量')
             ->hideOnIndex()
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield IntegerField::new('probability', '概率数')
             ->setRequired(true)
-            ->setHelp('概率数值，数值越大中奖概率越高');
+            ->setHelp('概率数值，数值越大中奖概率越高')
+        ;
 
         yield TextareaField::new('probabilityExpression', '概率表达式')
             ->hideOnIndex()
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield MoneyField::new('value', '奖品价值')
             ->setCurrency('CNY')
             ->setStoredAsCents(false)
             ->hideOnIndex()
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield NumberField::new('expireDay', '派发后有效天数')
             ->hideOnIndex()
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield DateTimeField::new('expireTime', '派发后到期时间')
             ->hideOnIndex()
             ->setRequired(false)
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
+    }
 
+    /**
+     * @return iterable<FieldInterface>
+     */
+    private function getImageFields(string $pageName): iterable
+    {
         if (Crud::PAGE_INDEX !== $pageName && Crud::PAGE_DETAIL !== $pageName) {
-            // 图片标签页
             yield FormField::addTab('图片设置')
-                ->setIcon('fas fa-images');
+                ->setIcon('fas fa-images')
+            ;
         }
 
-        // 图片相关
         yield ImageField::new('picture', '主图')
             ->setBasePath('/uploads/images')
             ->setUploadDir('public/uploads/images')
             ->setUploadedFileNamePattern('[randomhash].[extension]')
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield ImageField::new('secondPicture', '选中图片')
             ->hideOnIndex()
             ->setBasePath('/uploads/images')
             ->setUploadDir('public/uploads/images')
             ->setUploadedFileNamePattern('[randomhash].[extension]')
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield ImageField::new('pickPicture', '中奖图片')
             ->hideOnIndex()
             ->setBasePath('/uploads/images')
             ->setUploadDir('public/uploads/images')
             ->setUploadedFileNamePattern('[randomhash].[extension]')
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
         yield ImageField::new('consigneePicture', '地址图片')
             ->hideOnIndex()
             ->setBasePath('/uploads/images')
             ->setUploadDir('public/uploads/images')
             ->setUploadedFileNamePattern('[randomhash].[extension]')
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
+    }
 
+    /**
+     * @return iterable<FieldInterface>
+     */
+    private function getConfigurationFields(string $pageName): iterable
+    {
         if (Crud::PAGE_INDEX !== $pageName && Crud::PAGE_DETAIL !== $pageName) {
-            // 配置标签页
             yield FormField::addTab('配置设置')
-                ->setIcon('fas fa-cog');
+                ->setIcon('fas fa-cog')
+            ;
         }
 
-        // 展示控制
         yield BooleanField::new('canShow', '是否参与轮播')
             ->hideOnIndex()
-            ->renderAsSwitch(true);
+            ->renderAsSwitch(true)
+        ;
 
         yield BooleanField::new('canShowPrize', '是否在奖品列表展示')
             ->hideOnIndex()
-            ->renderAsSwitch(true);
+            ->renderAsSwitch(true)
+        ;
 
         yield BooleanField::new('isDefault', '兜底奖项')
             ->hideOnIndex()
             ->renderAsSwitch(true)
-            ->setHelp('如果用户没中任何奖项，将会中此兜底奖项');
+            ->setHelp('如果用户没中任何奖项，将会中此兜底奖项')
+        ;
 
         yield BooleanField::new('needConsignee', '需要收货地址')
             ->hideOnIndex()
-            ->renderAsSwitch(true);
+            ->renderAsSwitch(true)
+        ;
 
         yield BooleanField::new('needReview', '需要审核')
             ->hideOnIndex()
-            ->renderAsSwitch(true);
+            ->renderAsSwitch(true)
+        ;
+    }
 
-        // 关联实体
+    /**
+     * @return iterable<FieldInterface>
+     */
+    private function getAssociationFields(string $pageName, ?int $referrerPoolId): iterable
+    {
         $poolField = AssociationField::new('pool', '所属奖池')
-            ->setRequired(true);
+            ->setRequired(true)
+        ;
 
         // 如果从奖池页面跳转过来，预设奖池值
-        if ($referrerPoolId && Crud::PAGE_NEW === $pageName) {
+        if (null !== $referrerPoolId && Crud::PAGE_NEW === $pageName) {
             $poolField->setFormTypeOption('data', $this->getPoolById($referrerPoolId));
         }
 
@@ -207,35 +281,45 @@ class PrizeCrudController extends AbstractCrudController
 
         yield AssociationField::new('stocks', '库存信息')
             ->hideOnIndex()
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
-        // 排序
         yield IntegerField::new('sortNumber', '排序值')
             ->hideOnIndex()
             ->setHelp('值越大排序越靠前')
-            ->setRequired(false);
+            ->setRequired(false)
+        ;
 
-        // 状态信息
         yield BooleanField::new('valid', '是否有效')
-            ->renderAsSwitch(true);
+            ->renderAsSwitch(true)
+        ;
+    }
 
-        // 审计信息
+    /**
+     * @return iterable<FieldInterface>
+     */
+    private function getAuditFields(string $pageName): iterable
+    {
         yield TextField::new('createdBy', '创建人')
             ->hideOnForm()
-            ->hideOnIndex();
+            ->hideOnIndex()
+        ;
 
         yield TextField::new('updatedBy', '更新人')
             ->hideOnForm()
-            ->hideOnIndex();
+            ->hideOnIndex()
+        ;
 
         yield DateTimeField::new('createTime', '创建时间')
             ->hideOnForm()
             ->hideOnIndex()
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
 
         yield DateTimeField::new('updateTime', '更新时间')
             ->hideOnForm()
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
@@ -243,21 +327,23 @@ class PrizeCrudController extends AbstractCrudController
         // 添加返回奖池按钮
         $backToPool = Action::new('backToPool', '返回奖池', 'fas fa-arrow-left')
             ->linkToCrudAction('backToPoolAction')
-            ->setCssClass('btn btn-secondary');
+            ->setCssClass('btn btn-secondary')
+        ;
 
         // 检查是否有过滤条件，如果有表示是从奖池页面跳转而来
-        $request = $this->getContext()->getRequest();
-        $filters = $request->query->get('filters');
-        $poolFilter = is_array($filters) && isset($filters['pool']) ? $filters['pool'] : null;
+        $context = $this->getContext();
+        $request = $context?->getRequest();
+        $filters = $request?->query->all('filters') ?? [];
+        $poolFilter = $filters['pool'] ?? null;
 
-        if ($poolFilter !== null) {
+        if (null !== $poolFilter) {
             $actions->add(Crud::PAGE_INDEX, $backToPool);
         }
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_EDIT, Action::DETAIL)
-            ->reorder(Crud::PAGE_INDEX, [Action::DETAIL, Action::EDIT, Action::DELETE]);
+        ;
     }
 
     public function configureFilters(Filters $filters): Filters
@@ -269,7 +355,8 @@ class PrizeCrudController extends AbstractCrudController
             ->add(NumericFilter::new('quantity', '总数量'))
             ->add(NumericFilter::new('probability', '概率数'))
             ->add(BooleanFilter::new('isDefault', '兜底奖项'))
-            ->add(BooleanFilter::new('valid', '是否有效'));
+            ->add(BooleanFilter::new('valid', '是否有效'))
+        ;
     }
 
     /**
@@ -279,22 +366,30 @@ class PrizeCrudController extends AbstractCrudController
     public function backToPoolAction(AdminContext $context): Response
     {
         // 获取池ID
-        $filters = $context->getRequest()->query->get('filters');
-        $poolId = is_array($filters) && isset($filters['pool']['value']) ? $filters['pool']['value'] : null;
+        $filters = $context->getRequest()->query->all('filters');
 
-        if ($poolId === null) {
+        $poolFilter = $filters['pool'] ?? null;
+        $poolId = null;
+
+        if (is_array($poolFilter) && isset($poolFilter['value'])) {
+            $poolId = $poolFilter['value'];
+        }
+
+        if (null === $poolId) {
             // 如果没有poolId，返回到所有奖池列表
             $url = $this->adminUrlGenerator
                 ->setController(PoolCrudController::class)
                 ->setAction(Action::INDEX)
-                ->generateUrl();
+                ->generateUrl()
+            ;
         } else {
             // 如果有poolId，返回到特定奖池详情
             $url = $this->adminUrlGenerator
                 ->setController(PoolCrudController::class)
                 ->setAction(Action::DETAIL)
                 ->setEntityId($poolId)
-                ->generateUrl();
+                ->generateUrl()
+            ;
         }
 
         return $this->redirect($url);
@@ -305,6 +400,8 @@ class PrizeCrudController extends AbstractCrudController
      */
     private function getPoolById(int $id): ?Pool
     {
-        return $this->poolRepository->find($id);
+        $pool = $this->poolRepository->find($id);
+
+        return $pool instanceof Pool ? $pool : null;
     }
 }

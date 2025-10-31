@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class LotteryRulesController extends AbstractController
+final class LotteryRulesController extends AbstractController
 {
     public function __construct(
         private readonly ActivityRepository $activityRepository,
@@ -19,13 +19,13 @@ class LotteryRulesController extends AbstractController
     public function __invoke(Request $request): Response
     {
         $activityId = $request->query->get('activity_id');
-        
-        if (!$activityId) {
+
+        if (null === $activityId || '' === $activityId) {
             throw $this->createNotFoundException('活动ID不能为空');
         }
 
         $activity = $this->activityRepository->find($activityId);
-        if ($activity === null) {
+        if (null === $activity) {
             throw $this->createNotFoundException('抽奖活动不存在');
         }
 

@@ -9,10 +9,6 @@ services:
     resource: '../../Command/'
   LotteryBundle\Controller\:
     resource: '../../Controller/'
-  LotteryBundle\DataFixtures\:
-    resource: '../../DataFixtures/'
-  LotteryBundle\EventSubscriber\:
-    resource: '../../EventSubscriber/'
   LotteryBundle\ExpressionLanguage\:
     resource: '../../ExpressionLanguage/'
   LotteryBundle\MessageHandler\:

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Repository\StockRepository;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Attribute\SnowflakeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -17,6 +19,9 @@ class Stock implements \Stringable
 {
     use TimestampableAware;
     use BlameableAware;
+    use IpTraceableAware;
+
+    /** @phpstan-ignore-next-line */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -24,10 +29,13 @@ class Stock implements \Stringable
 
     #[SnowflakeColumn]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '序列号'])]
+    #[Assert\NotBlank(message: '序列号不能为空')]
+    #[Assert\Length(max: 100, maxMessage: '序列号不能超过 {{ limit }} 个字符')]
     private ?string $sn = null;
 
     #[ORM\ManyToOne(targetEntity: Prize::class, inversedBy: 'stocks')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: '必须关联到一个奖品')]
     private ?Prize $prize = null;
 
     #[ORM\ManyToOne(targetEntity: Chance::class, inversedBy: 'stocks')]
@@ -35,20 +43,16 @@ class Stock implements \Stringable
 
     #[ORM\Version]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => 1, 'comment' => '乐观锁版本号'])]
+    #[Assert\PositiveOrZero(message: '版本号必须是非负整数')]
     private ?int $lockVersion = null;
-
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __toString(): string
     {
-        return "{$this->getPrize()->getName()} {$this->getSn()}";
+        $prize = $this->getPrize();
+        $prizeName = $prize?->getName() ?? 'Unknown Prize';
+        $sn = $this->getSn() ?? 'Unknown SN';
+
+        return "{$prizeName} {$sn}";
     }
 
     public function getId(): ?int
@@ -61,11 +65,9 @@ class Stock implements \Stringable
         return $this->sn;
     }
 
-    public function setSn(string $sn): self
+    public function setSn(string $sn): void
     {
         $this->sn = $sn;
-
-        return $this;
     }
 
     public function getPrize(): ?Prize
@@ -73,11 +75,9 @@ class Stock implements \Stringable
         return $this->prize;
     }
 
-    public function setPrize(?Prize $prize): self
+    public function setPrize(?Prize $prize): void
     {
         $this->prize = $prize;
-
-        return $this;
     }
 
     public function getChance(): ?Chance
@@ -85,11 +85,9 @@ class Stock implements \Stringable
         return $this->chance;
     }
 
-    public function setChance(?Chance $chance): self
+    public function setChance(?Chance $chance): void
     {
         $this->chance = $chance;
-
-        return $this;
     }
 
     public function getLockVersion(): ?int
@@ -97,34 +95,8 @@ class Stock implements \Stringable
         return $this->lockVersion;
     }
 
-    public function setLockVersion(?int $lockVersion): self
+    public function setLockVersion(?int $lockVersion): void
     {
         $this->lockVersion = $lockVersion;
-
-        return $this;
     }
-
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }}
+}

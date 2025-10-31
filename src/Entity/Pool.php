@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -7,42 +9,49 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Repository\PoolRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
+/**
+ * @implements AdminArrayInterface<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: PoolRepository::class)]
 #[ORM\Table(name: 'lottery_pool', options: ['comment' => '奖池'])]
 class Pool implements \Stringable, AdminArrayInterface
 {
     use TimestampableAware;
     use BlameableAware;
+    use IpTraceableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    private int $id = 0;
 
     #[ORM\Column(type: Types::STRING, length: 60, unique: true, options: ['comment' => '名称'])]
+    #[Assert\NotBlank(message: '奖池名称不能为空')]
+    #[Assert\Length(max: 60, maxMessage: '奖池名称不能超过 {{ limit }} 个字符')]
     private ?string $title = null;
 
     /**
-     * @var Collection<Prize>
+     * @var Collection<int, Prize>
      */
     #[ORM\OneToMany(targetEntity: Prize::class, mappedBy: 'pool')]
     private Collection $prizes;
 
     /**
-     * @var Collection<Activity>
+     * @var Collection<int, Activity>
      */
     #[ORM\ManyToMany(targetEntity: Activity::class, mappedBy: 'pools', fetch: 'EXTRA_LAZY')]
     private Collection $activities;
 
     /**
-     * @var Collection<PoolAttribute>
+     * @var Collection<int, PoolAttribute>
      */
     #[ORM\OneToMany(targetEntity: PoolAttribute::class, mappedBy: 'pool', orphanRemoval: true)]
     private Collection $poolAttributes;
@@ -50,16 +59,8 @@ class Pool implements \Stringable, AdminArrayInterface
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
+    #[Assert\Type(type: 'bool', message: '有效状态必须是布尔值')]
     private ?bool $valid = false;
-
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __construct()
     {
@@ -70,15 +71,15 @@ class Pool implements \Stringable, AdminArrayInterface
 
     public function __toString(): string
     {
-        if ($this->getId() === null || $this->getId() === 0) {
+        if (0 === $this->getId()) {
             return '';
         }
 
-        return $this->getTitle();
+        return $this->getTitle() ?? '';
     }
 
     // ID相关
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -89,11 +90,9 @@ class Pool implements \Stringable, AdminArrayInterface
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(string $title): void
     {
         $this->title = $title;
-
-        return $this;
     }
 
     // 状态相关
@@ -102,11 +101,9 @@ class Pool implements \Stringable, AdminArrayInterface
         return $this->valid;
     }
 
-    public function setValid(?bool $valid): self
+    public function setValid(?bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
     /**
@@ -117,17 +114,15 @@ class Pool implements \Stringable, AdminArrayInterface
         return $this->prizes;
     }
 
-    public function addPrize(Prize $prize): self
+    public function addPrize(Prize $prize): void
     {
         if (!$this->prizes->contains($prize)) {
-            $this->prizes[] = $prize;
+            $this->prizes->add($prize);
             $prize->setPool($this);
         }
-
-        return $this;
     }
 
-    public function removePrize(Prize $prize): self
+    public function removePrize(Prize $prize): void
     {
         if ($this->prizes->removeElement($prize)) {
             // set the owning side to null (unless already changed)
@@ -135,8 +130,6 @@ class Pool implements \Stringable, AdminArrayInterface
                 $prize->setPool(null);
             }
         }
-
-        return $this;
     }
 
     /**
@@ -147,23 +140,19 @@ class Pool implements \Stringable, AdminArrayInterface
         return $this->activities;
     }
 
-    public function addActivity(Activity $activity): self
+    public function addActivity(Activity $activity): void
     {
         if (!$this->activities->contains($activity)) {
-            $this->activities[] = $activity;
+            $this->activities->add($activity);
             $activity->addPool($this);
         }
-
-        return $this;
     }
 
-    public function removeActivity(Activity $activity): self
+    public function removeActivity(Activity $activity): void
     {
         if ($this->activities->removeElement($activity)) {
             $activity->removePool($this);
         }
-
-        return $this;
     }
 
     /**
@@ -174,17 +163,15 @@ class Pool implements \Stringable, AdminArrayInterface
         return $this->poolAttributes;
     }
 
-    public function addPoolAttribute(PoolAttribute $poolAttribute): self
+    public function addPoolAttribute(PoolAttribute $poolAttribute): void
     {
         if (!$this->poolAttributes->contains($poolAttribute)) {
-            $this->poolAttributes[] = $poolAttribute;
+            $this->poolAttributes->add($poolAttribute);
             $poolAttribute->setPool($this);
         }
-
-        return $this;
     }
 
-    public function removePoolAttribute(PoolAttribute $poolAttribute): self
+    public function removePoolAttribute(PoolAttribute $poolAttribute): void
     {
         if ($this->poolAttributes->removeElement($poolAttribute)) {
             // set the owning side to null (unless already changed)
@@ -192,36 +179,14 @@ class Pool implements \Stringable, AdminArrayInterface
                 $poolAttribute->setPool(null);
             }
         }
-
-        return $this;
     }
 
-    // 审计信息相关
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
+    // 审计信息相关 - 使用 IpTraceableAware trait
 
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
-public function retrieveAdminArray(): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function retrieveAdminArray(): array
     {
         return [
             'id' => $this->getId(),

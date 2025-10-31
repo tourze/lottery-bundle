@@ -1,43 +1,280 @@
-# 抽奖模块
+# Lottery Bundle
 
-中奖概率参考设计： https://zhuanlan.zhihu.com/p/375142427
+[English](README.md) | [中文](README.zh-CN.md)
 
-目前的设计是每个机会都落库，后面的抽奖其实就是取一个记录然后去更新。
-这种方式好处是机会管理简单了，坏处不容易适配定制的机会次数管理。
-例如 Loyalty 的机会是根据积分数来计算得来的，那么就不太适合了。
+[![Latest Version](https://img.shields.io/packagist/v/tourze/lottery-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/lottery-bundle)  
+[![Total Downloads](https://img.shields.io/packagist/dt/tourze/lottery-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/lottery-bundle)  
+[![PHP Version](https://img.shields.io/packagist/php-v/tourze/lottery-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/lottery-bundle)  
+[![License](https://img.shields.io/packagist/l/tourze/lottery-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/lottery-bundle)  
+[![Build Status](https://img.shields.io/github/actions/workflow/status/tourze/php-monorepo/test.yml?style=flat-square)](https://github.com/tourze/php-monorepo/actions)  
+[![Coverage](https://img.shields.io/codecov/c/github/tourze/php-monorepo?style=flat-square)](https://codecov.io/gh/tourze/php-monorepo)
 
-一次完整的抽奖，大概流程是：
+A comprehensive lottery system bundle for Symfony applications featuring multiple lottery types, advanced prize pool management, chance control, and automated prize distribution.
 
-1. 检查活动状态；
-2. 确定一个有效的Chance；
-3. 预扣Chance；
-4. 确定奖池；
-5. 从奖池中选中一个奖品；
-6. 实扣Chance；
+## Table of Contents
 
-实现思路，参考一些已有的活动，我们思考我们系统怎么去满足：
+- [Features](#features)
+- [Installation](#installation)
+  - [Requirements](#requirements)
+  - [Install via Composer](#install-via-composer)
+- [Quick Start](#quick-start)
+  - [Bundle Registration](#bundle-registration)
+  - [Database Setup](#database-setup)
+  - [Configuration](#configuration)
+- [Console Commands](#console-commands)
+- [JSON-RPC API](#json-rpc-api)
+- [System Architecture](#system-architecture)
+- [Event System](#event-system)
+- [Advanced Usage](#advanced-usage)
+  - [Custom Event Subscribers](#custom-event-subscribers)
+  - [Expression Language](#expression-language)
+  - [External Integration](#external-integration)
+- [Contributing](#contributing)
+- [License](#license)
 
-1. https://wuxia.qq.com/webplat/info/news_version3/5012/5013/5014/5016/m3486/202204/913177.shtml  2022年04月18日青龙秘宝活动规则
-2. https://www.woshipm.com/pd/4962252.html  中奖不易，抽奖活动设计更不易 里面关于抽奖模型的设计还不错
-3. https://zhuanlan.zhihu.com/p/139769916  关于抽奖的逻辑
-4. https://zhuanlan.zhihu.com/p/534645684  【游戏数值策划】抽奖模型的设计与分析 这个值得认真看
+## Features
 
-TODO：
+- **Multiple Lottery Types** - Support for wheel, grid, slot machine, and on-site lotteries
+- **Advanced Prize Pool Management** - Multi-pool system with configurable probabilities and constraints
+- **Intelligent Chance Management** - User chances with expiration tracking and status control
+- **Automated Prize Distribution** - Automatic prize sending with consignee management
+- **Admin Interface** - Complete EasyAdmin integration for lottery management
+- **Responsive H5 Frontend** - Mobile-optimized lottery interface with multiple themes
+- **Event-Driven Architecture** - Customizable event system for business logic extension
+- **JSON-RPC API** - RESTful API endpoints for external system integration
+- **Cron Job Integration** - Automated background tasks for maintenance and processing
+- **Expression Language** - Flexible configuration with dynamic rule evaluation
+- **Concurrent Safety** - Database-level locking for high-concurrency scenarios
 
-1. 活动规则；
-   1. 开放日期限制；
-   2. 开放时间限制；
-   3. 每人每日赠送次数；
-   4. 每人每日中奖次数限制；
-   5. 每人总赠送次数；
-   6. 每人总中奖次数限制；
-   7. 随机分配奖池；
-   8. 抽满次数奖池进阶；
-   9. 连抽赠送新机会；
-   10. 连抽必中指定奖品；
-   11. 全服礼包（整个活动有N人参与后，则前面参与的用户直接发放指定奖品）；
-2. 奖池规则；
-3. 奖品规则；
-4. 奖品的设计问题：我们到底是维护单独的奖品呢，还是做到SPU/SKU管理去；
-5. 实物奖的发奖：我们是直接同步到订单模块去，还是自己单独维护？
-6. 支持扣积分的方式来参与活动
+## Installation
+
+### Requirements
+
+- PHP 8.1 or higher
+- Symfony 7.3 or higher
+- Doctrine ORM 3.0 or higher
+- MySQL 5.7+ or PostgreSQL 10+
+- Redis (recommended for caching)
+
+### Install via Composer
+
+```bash
+composer require tourze/lottery-bundle
+```
+
+## Quick Start
+
+```php
+<?php
+
+use LotteryBundle\Service\LotteryService;
+use LotteryBundle\Service\PrizeService;
+use LotteryBundle\Entity\Chance;
+
+// Execute lottery draw
+$lotteryService = $container->get(LotteryService::class);
+$result = $lotteryService->doLottery($chance);
+
+// Count valid chances for user
+$validChances = $lotteryService->countValidChance($user, $activity);
+
+// Award chances to user
+$lotteryService->giveChance($user, $chance);
+
+// Prize management
+$prizeService = $container->get(PrizeService::class);
+$prizeService->sendPrize($chance);
+
+// Check if activity is currently active
+$isActive = $activity->isActive();
+
+// Get available lottery templates
+$templates = $lotteryService->getAvailableTemplates();
+```
+
+### Bundle Registration
+
+Add to `config/bundles.php`:
+
+```php
+LotteryBundle\LotteryBundle::class => ['all' => true],
+```
+
+### Database Setup
+
+```bash
+# Create database tables
+php bin/console doctrine:migrations:migrate
+
+# Load sample data (optional)
+php bin/console doctrine:fixtures:load --group=lottery
+```
+
+### Configuration
+
+The bundle provides flexible configuration through:
+
+- **Activity Settings** - Configure lottery activities with time constraints and participation rules
+- **Prize Pool Management** - Set up multiple pools with different probability algorithms
+- **Prize Configuration** - Define virtual rewards, physical prizes, and distribution methods
+- **Chance Control** - Monitor user participation limits and success tracking
+
+## Console Commands
+
+### lottery:check-expire-chance
+
+Checks and processes expired lottery chances. This command runs every minute via
+cron job.
+
+```bash
+php bin/console lottery:check-expire-chance
+```
+
+**Purpose**: Automatically marks expired chances as invalid and triggers expire
+events for cleanup.
+
+### lottery:check-review-chance-send-prize
+
+Processes reviewed chances and sends prizes to winners. This command runs every hour
+at 43 minutes.
+
+```bash
+php bin/console lottery:check-review-chance-send-prize
+```
+
+**Purpose**: Automatically sends prizes to users whose chances have been reviewed
+and approved.
+
+## JSON-RPC API
+
+The bundle exposes JSON-RPC procedures for external integrations:
+
+### Lottery Operations
+- `JoinLottery` - Execute lottery participation with concurrent safety
+- `GetAllLotteryChance` - Retrieve comprehensive lottery chance data
+- `GetLotteryDetail` - Get detailed activity information and rules
+- `ServerSendLotteryChance` - Administrative chance distribution
+
+### User Management
+- `GetUserLotteryChanceList` - User's participation history with pagination
+- `GetUserValidLotteryChanceCounts` - Real-time valid chance counts
+- `GetLotteryConsignee` - User delivery address information
+- `SaveOrUpdateLotteryConsignee` - Manage shipping addresses
+
+### Prize Information
+- `GetLotteryPrizeList` - Available prizes with stock information
+
+## System Architecture
+
+The lottery system implements a robust workflow with concurrent safety:
+
+1. **Activity Validation** - Verify lottery timing, status, and participation eligibility
+2. **Chance Authentication** - Validate user's available chances with database locking
+3. **Chance Pre-deduction** - Atomically reserve chances to prevent overselling
+4. **Pool Selection** - Dynamic pool determination based on configurable rules
+5. **Prize Algorithm** - Probability-based prize selection with stock management
+6. **Result Confirmation** - Transactional commit with event dispatching
+7. **Prize Distribution** - Automated or manual prize fulfillment process
+
+## Event System
+
+Extensive event system for business logic customization:
+
+### Core Events
+- `UserJoinSuccessEvent` - Dispatched after successful lottery participation
+- `AfterChanceExpireEvent` - Triggered when user chances expire
+- `ChanceEvent` - General chance lifecycle event
+
+### Customization Events
+- `DecidePoolEvent` - Override default pool selection algorithm
+- `DecidePrizeProbabilityEvent` - Implement custom probability calculations
+- `AllLotteryChanceEvent` - Global event for all chance operations
+
+## Advanced Usage
+
+### Custom Event Subscribers
+
+Extend lottery functionality with event subscribers:
+
+```php
+use LotteryBundle\Event\UserJoinSuccessEvent;
+use LotteryBundle\Event\DecidePoolEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class CustomLotterySubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            UserJoinSuccessEvent::class => 'onUserJoinSuccess',
+            DecidePoolEvent::class => 'onDecidePool',
+        ];
+    }
+
+    public function onUserJoinSuccess(UserJoinSuccessEvent $event): void
+    {
+        // Send notification, award points, etc.
+        $chance = $event->getChance();
+        $this->notificationService->sendLotteryResult($chance);
+    }
+
+    public function onDecidePool(DecidePoolEvent $event): void
+    {
+        // Custom pool selection based on user VIP level
+        $user = $event->getUser();
+        if ($user->isVip()) {
+            $event->setPool($this->getVipPool());
+        }
+    }
+}
+```
+
+### Expression Language
+
+Implement complex business rules with expression language:
+
+```yaml
+# config/packages/lottery.yaml
+lottery:
+    pools:
+        vip_pool:
+            # Only VIP users with 5+ chances
+            expression: 'user.isVip() and chance.count() > 5'
+        weekend_pool:
+            # Special weekend prizes
+            expression: 'date("N") >= 6'
+        high_value_pool:
+            # High-value prizes for frequent players
+            expression: 'user.getLotteryCount() > 100'
+```
+
+### External Integration
+
+Integrate with external systems via JSON-RPC:
+
+```php
+// Join lottery from external application
+$result = $client->call('JoinLottery', [
+    'activityId' => 1,
+    'count' => 3, // Draw 3 times
+]);
+
+// Get user's lottery history
+$history = $client->call('GetUserLotteryChanceList', [
+    'page' => 1,
+    'limit' => 20,
+]);
+
+// Check available chances
+$chances = $client->call('GetUserValidLotteryChanceCounts', [
+    'activityId' => 1,
+]);
+```
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE) for more information.

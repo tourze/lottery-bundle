@@ -2,7 +2,6 @@
 
 namespace LotteryBundle\Procedure;
 
-use Doctrine\Common\Collections\Criteria;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Prize;
 use LotteryBundle\Event\DecidePoolEvent;
@@ -40,56 +39,107 @@ class GetLotteryPrizeList extends CacheableProcedure
 
     public function execute(): array
     {
+        $activity = $this->validateActivity();
+        $pool = $this->determinePool($activity);
+        $prizes = $this->fetchPrizes($pool);
+        $list = $this->formatPrizeList($prizes);
+
+        return ['data' => $list];
+    }
+
+    private function validateActivity(): Activity
+    {
         $activity = $this->activityRepository->findOneBy([
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if ($activity === null) {
+        if (null === $activity) {
             throw new ApiException('活动无效');
         }
+        return $activity;
+    }
 
+    private function determinePool(Activity $activity): mixed
+    {
         $decidePoolEvent = new DecidePoolEvent();
         $decidePoolEvent->setActivity($activity);
-        $decidePoolEvent->setUser($this->security->getUser());
+        $currentUser = $this->security->getUser();
+        if (null !== $currentUser) {
+            $decidePoolEvent->setUser($currentUser);
+        }
         $this->eventDispatcher->dispatch($decidePoolEvent);
         $pool = $decidePoolEvent->getPool();
 
-        if ($pool === null) {
-            // 存在多个奖池则取第一个
-            $pool = $this->poolRepository->createQueryBuilder('p')
-                ->leftJoin('p.activities', 'a')
-                ->where('a.id = :activityId')
-                ->setParameter('activityId', $this->activityId)
-                ->getQuery()
-                ->getResult();
+        if (null === $pool) {
+            $pool = $this->findFirstPoolForActivity();
         }
-        if ($pool === null) {
+        if (null === $pool) {
             throw new ApiException('暂无奖品');
         }
+        return $pool;
+    }
 
-        // 文本类奖品就不展示了
-        $prizes = $this->prizeRepository->createQueryBuilder('p')
+    private function findFirstPoolForActivity(): mixed
+    {
+        $pools = $this->poolRepository->createQueryBuilder('p')
+            ->leftJoin('p.activities', 'a')
+            ->where('a.id = :activityId')
+            ->setParameter('activityId', $this->activityId)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult()
+        ;
+        if (is_array($pools) && count($pools) > 0) {
+            return $pools[0];
+        }
+        return null;
+    }
+
+    /**
+     * @return array<Prize>
+     */
+    private function fetchPrizes(mixed $pool): array
+    {
+        /** @var array<Prize> $result */
+        $result = $this->prizeRepository->createQueryBuilder('p')
             ->where('p.pool = :pool and p.valid = 1 and p.type not in (:type)')
             ->setParameter('pool', $pool)
             ->setParameter('type', TextResourceProvider::CODE)
-            ->orderBy('p.sortNumber', Criteria::DESC)
+            ->orderBy('p.sortNumber', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
+    }
 
+    /**
+     * @param array<Prize> $prizes
+     * @return array<array<string, mixed>>
+     */
+    private function formatPrizeList(array $prizes): array
+    {
         $list = [];
         foreach ($prizes as $item) {
-            /* @var Prize $item */
+            if (!$item instanceof Prize) {
+                continue;
+            }
             $list[] = $item->retrievePlainArray();
         }
-
         return $list;
     }
 
     public function getCacheKey(JsonRpcRequest $request): string
     {
-        $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser() !== null) {
-            $key .= '-' . $this->security->getUser()->getUserIdentifier();
+        $params = $request->getParams();
+        if (null === $params) {
+            $key = $this::class . '-no-params';
+        } else {
+            $key = $this->buildParamCacheKey($params);
+        }
+
+        $user = $this->security->getUser();
+        if (null !== $user) {
+            $key .= '-' . $user->getUserIdentifier();
         }
 
         return $key;

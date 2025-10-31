@@ -3,7 +3,8 @@
 namespace LotteryBundle\Procedure;
 
 use Carbon\CarbonImmutable;
-use Doctrine\Common\Collections\Criteria;
+use LotteryBundle\Entity\Activity;
+use LotteryBundle\Entity\Chance;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -33,58 +34,104 @@ class GetUserLotteryChanceList extends BaseProcedure
 
     public function execute(): array
     {
+        $activity = $this->validateActivity();
+        $user = $this->security->getUser();
+
+        $allChances = $this->fetchAllChances($user, $activity);
+        $usedChances = $this->fetchUsedChances($user, $activity);
+        $unUsedChances = $this->fetchUnUsedChances($user, $activity);
+
+        return [
+            'all' => $this->formatChanceList($allChances),
+            'used' => $this->formatChanceList($usedChances),
+            'unUsed' => $this->formatChanceList($unUsedChances),
+            'activity' => $activity->retrievePlainArray(),
+            'canRedeem' => $this->canRedeem($activity),
+        ];
+    }
+
+    private function validateActivity(): Activity
+    {
         $activity = $this->activityRepository->findOneBy([
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if ($activity === null) {
+        if (null === $activity) {
             throw new ApiException('活动无效');
         }
+        return $activity;
+    }
 
-        $chance = $this->chanceRepository->findBy([
-            'user' => $this->security->getUser(),
+    /**
+     * @return array<Chance>
+     */
+    private function fetchAllChances(mixed $user, Activity $activity): array
+    {
+        /** @var array<Chance> $result */
+        $result = $this->chanceRepository->findBy([
+            'user' => $user,
             'activity' => $activity,
         ], ['id' => 'desc']);
+        return $result;
+    }
 
-        // 已使用抽奖机会过滤掉不展示的商品
-        $usedChance = $this->chanceRepository->createQueryBuilder('c')
+    /**
+     * @return array<Chance>
+     */
+    private function fetchUsedChances(mixed $user, Activity $activity): array
+    {
+        /** @var array<Chance> $result */
+        $result = $this->chanceRepository->createQueryBuilder('c')
             ->leftJoin('c.prize', 'p')
-            ->where('c.user = :user and c.activity = :activity and c.valid = false and c.useTime is not null and p.canShowPrize = true')
-            ->setParameter('user', $this->security->getUser())
+            ->where(
+                'c.user = :user and c.activity = :activity and c.valid = false ' .
+                'and c.useTime is not null and p.canShowPrize = true'
+            )
+            ->setParameter('user', $user)
             ->setParameter('activity', $activity)
-            ->orderBy('c.id', Criteria::DESC)
+            ->orderBy('c.id', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
+    }
 
-        $unUsedChance = $this->chanceRepository->createQueryBuilder('c')
+    /**
+     * @return array<Chance>
+     */
+    private function fetchUnUsedChances(mixed $user, Activity $activity): array
+    {
+        /** @var array<Chance> $result */
+        $result = $this->chanceRepository->createQueryBuilder('c')
             ->where('c.user = :user and c.activity = :activity and c.valid = true')
             ->andWhere('c.startTime <= :now and c.expireTime >= :now')
-            ->setParameter('user', $this->security->getUser())
+            ->setParameter('user', $user)
             ->setParameter('activity', $activity)
             ->setParameter('now', CarbonImmutable::now())
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
+    }
 
-        $all = [];
-        $used = [];
-        $unUsed = [];
+    /**
+     * @param array<Chance> $chances
+     * @return array<array<string, mixed>>
+     */
+    private function formatChanceList(array $chances): array
+    {
+        $list = [];
+        foreach ($chances as $item) {
+            if (!$item instanceof Chance) {
+                continue;
+            }
+            $list[] = $item->retrieveApiArray();
+        }
+        return $list;
+    }
 
-        foreach ($chance as $item) {
-            $all[] = $item->retrieveApiArray();
-        }
-        foreach ($usedChance as $item) {
-            $used[] = $item->retrieveApiArray();
-        }
-        foreach ($unUsedChance as $item) {
-            $unUsed[] = $item->retrieveApiArray();
-        }
-
-        return [
-            'all' => $all,
-            'used' => $used,
-            'unUsed' => $unUsed,
-            'activity' => $activity->retrievePlainArray(),
-            'canRedeem' => CarbonImmutable::now() <= $activity->getLastRedeemTime(),
-        ];
+    private function canRedeem(Activity $activity): bool
+    {
+        return null !== $activity->getLastRedeemTime() && CarbonImmutable::now() <= $activity->getLastRedeemTime();
     }
 }

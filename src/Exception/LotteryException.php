@@ -10,11 +10,15 @@ use Tourze\JsonRPC\Core\Exception\JsonRpcException;
  */
 class LotteryException extends JsonRpcException
 {
-    public function __construct($mixed = '', $code = 0, array $data = [], ?\Throwable $previous = null)
+    /**
+     * @param string|array<int, int|string> $mixed
+     * @param array<string, mixed> $data
+     */
+    public function __construct(string|array $mixed = '', int $code = 0, array $data = [], ?\Throwable $previous = null)
     {
         if (is_array($mixed)) {
-            $message = $mixed[1];
-            $code = $mixed[0];
+            $message = (string) $mixed[1];
+            $code = (int) $mixed[0];
         } else {
             $message = $mixed;
         }

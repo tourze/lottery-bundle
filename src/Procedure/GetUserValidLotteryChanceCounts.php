@@ -34,7 +34,7 @@ class GetUserValidLotteryChanceCounts extends BaseProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if ($activity === null) {
+        if (null === $activity) {
             throw new ApiException('活动无效');
         }
 
@@ -46,7 +46,8 @@ class GetUserValidLotteryChanceCounts extends BaseProcedure
             ->setParameter('activity', $activity)
             ->setParameter('now', CarbonImmutable::now())
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
         return [
             'count' => $unUsedChance,

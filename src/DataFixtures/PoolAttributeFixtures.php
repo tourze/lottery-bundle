@@ -7,10 +7,13 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use LotteryBundle\Entity\Pool;
 use LotteryBundle\Entity\PoolAttribute;
+use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
  * 奖池属性数据填充
  */
+#[When(env: 'test')]
+#[When(env: 'dev')]
 class PoolAttributeFixtures extends Fixture implements DependentFixtureInterface
 {
     // 预设属性键值对
@@ -32,7 +35,7 @@ class PoolAttributeFixtures extends Fixture implements DependentFixtureInterface
         'logging' => ['none', 'basic', 'detailed', 'full'],
         'notification' => ['none', 'email', 'sms', 'push', 'all'],
         'anti_cheat' => ['none', 'basic', 'advanced', 'ai'],
-        'algorithm' => ['standard', 'fair', 'progressive', 'loyalty', 'vip']
+        'algorithm' => ['standard', 'fair', 'progressive', 'loyalty', 'vip'],
     ];
 
     public function load(ObjectManager $manager): void
@@ -75,7 +78,7 @@ class PoolAttributeFixtures extends Fixture implements DependentFixtureInterface
         // 获取奖池引用数组
         $pools = [
             $this->getReference(PoolFixtures::POOL_REFERENCE_1, Pool::class),
-            $this->getReference(PoolFixtures::POOL_REFERENCE_2, Pool::class)
+            $this->getReference(PoolFixtures::POOL_REFERENCE_2, Pool::class),
         ];
 
         // 为每个奖池添加更多属性
@@ -130,7 +133,7 @@ class PoolAttributeFixtures extends Fixture implements DependentFixtureInterface
             'logging' => '日志级别',
             'notification' => '通知方式',
             'anti_cheat' => '防作弊级别',
-            'algorithm' => '抽奖算法'
+            'algorithm' => '抽奖算法',
         ];
 
         return $remarks[$name] ?? '配置参数';

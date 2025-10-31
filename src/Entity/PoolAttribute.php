@@ -1,18 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Repository\PoolAttributeRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
+/**
+ * @implements AdminArrayInterface<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: PoolAttributeRepository::class)]
 #[ORM\Table(name: 'lottery_pool_attribute', options: ['comment' => '奖池属性'])]
 #[ORM\UniqueConstraint(name: 'idx_uniq_pool_name', columns: ['pool_id', 'name'])]
@@ -21,51 +26,46 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
     use SnowflakeKeyAware;
     use TimestampableAware;
     use BlameableAware;
+    use IpTraceableAware;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '属性'])]
+    #[Assert\NotBlank(message: '属性名称不能为空')]
+    #[Assert\Length(max: 100, maxMessage: '属性名称不能超过 {{ limit }} 个字符')]
     private ?string $name = null;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '内容'])]
+    #[Assert\NotBlank(message: '属性值不能为空')]
+    #[Assert\Length(max: 255, maxMessage: '属性值不能超过 {{ limit }} 个字符')]
     private ?string $value = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '备注'])]
+    #[Assert\Length(max: 255, maxMessage: '备注不能超过 {{ limit }} 个字符')]
     private ?string $remark = null;
 
     #[ORM\ManyToOne(targetEntity: Pool::class, inversedBy: 'poolAttributes')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: '必须关联到一个奖池')]
     private ?Pool $pool = null;
-
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __toString(): string
     {
-        if ($this->getId() === null || $this->getId() === '0') {
+        if (null === $this->getId() || '0' === $this->getId()) {
             return '';
         }
 
         return "{$this->getName()}:{$this->getValue()}";
     }
 
-
     public function getName(): ?string
     {
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-
-        return $this;
     }
 
     public function getValue(): ?string
@@ -73,11 +73,9 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
         return $this->value;
     }
 
-    public function setValue(string $value): self
+    public function setValue(string $value): void
     {
         $this->value = $value;
-
-        return $this;
     }
 
     public function getRemark(): ?string
@@ -85,11 +83,9 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
         return $this->remark;
     }
 
-    public function setRemark(?string $remark): self
+    public function setRemark(?string $remark): void
     {
         $this->remark = $remark;
-
-        return $this;
     }
 
     public function getPool(): ?Pool
@@ -97,37 +93,15 @@ class PoolAttribute implements \Stringable, AdminArrayInterface
         return $this->pool;
     }
 
-    public function setPool(?Pool $pool): self
+    public function setPool(?Pool $pool): void
     {
         $this->pool = $pool;
-
-        return $this;
     }
 
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }public function retrieveAdminArray(): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function retrieveAdminArray(): array
     {
         return [
             'id' => $this->getId(),

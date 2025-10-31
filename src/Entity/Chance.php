@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Entity;
 
 use BenefitBundle\Model\BenefitResource;
@@ -11,55 +13,71 @@ use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Enum\ChanceStatusEnum;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 
+/**
+ * @implements PlainArrayInterface<string, mixed>
+ * @implements ApiArrayInterface<string, mixed>
+ * @implements AdminArrayInterface<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: ChanceRepository::class)]
 #[ORM\Table(name: 'lottery_chance', options: ['comment' => '抽奖机会'])]
 class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterface, \Stringable, BenefitResource
 {
     use TimestampableAware;
     use BlameableAware;
+    use IpTraceableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    private int $id = 0;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '任务标题', 'default' => ''])]
+    #[Assert\Length(max: 100, maxMessage: '任务标题不能超过 {{ limit }} 个字符')]
     private ?string $title = '';
 
     #[IndexColumn]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '开始时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class)]
     private ?\DateTimeInterface $startTime = null;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '失效时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class)]
     private ?\DateTimeInterface $expireTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '使用时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class)]
     private ?\DateTimeInterface $useTime = null;
-    
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '发送时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class)]
     private ?\DateTimeInterface $sendTime = null;
 
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '备注'])]
+    #[Assert\Length(max: 255, maxMessage: '备注不能超过 {{ limit }} 个字符')]
     private ?string $remark = null;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否有效'])]
+    #[Assert\Type(type: 'bool')]
     private ?bool $valid = null;
 
     #[ORM\Column(length: 100, nullable: true, enumType: ChanceStatusEnum::class, options: ['comment' => '状态'])]
+    #[Assert\Choice(callback: [ChanceStatusEnum::class, 'cases'])]
     private ChanceStatusEnum $status = ChanceStatusEnum::INIT;
 
     #[ORM\ManyToOne(targetEntity: Activity::class, cascade: ['persist'], inversedBy: 'chances')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: '必须关联到一个活动')]
     private ?Activity $activity = null;
 
     #[ORM\ManyToOne(targetEntity: UserInterface::class)]
@@ -80,43 +98,50 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Prize $prize = null;
 
-    #[ORM\OneToOne(targetEntity: Consignee::class, mappedBy: 'chance', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: Consignee::class, cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'consignee_id', referencedColumnName: 'id')]
     private ?Consignee $consignee = null;
 
     /**
      * 关联的库存信息.
      *
-     * @var Collection<Stock>
+     * @var Collection<int, Stock>
      */
     #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'chance')]
     private Collection $stocks;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '发送结果'])]
+    #[Assert\Type(type: 'array')]
     private ?array $sendResult = [];
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '奖池上下文'])]
+    #[Assert\Type(type: 'array')]
     private ?array $poolContext = [];
 
+    /**
+     * @var array<int, array<string, mixed>>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '概率上下文'])]
+    #[Assert\Type(type: 'array')]
     private ?array $probabilityContext = [];
 
     #[ORM\ManyToOne]
     private ?UserInterface $reviewUser = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '审核时间'])]
+    #[Assert\Length(max: 100, maxMessage: '审核时间不能超过 {{ limit }} 个字符')]
     private ?string $reviewTime = null;
 
     #[ORM\Version]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => 1, 'comment' => '乐观锁版本号'])]
+    #[Assert\PositiveOrZero(message: '版本号必须是非负整数')]
     private ?int $lockVersion = null;
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __construct()
     {
@@ -125,14 +150,14 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
 
     public function __toString(): string
     {
-        if ($this->getId() === null || $this->getId() === 0) {
+        if (0 === $this->getId()) {
             return '';
         }
 
         return ClassUtils::getClass($this) . '-' . $this->getId();
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -142,11 +167,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->title ?? '';
     }
 
-    public function setTitle(?string $title): self
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
-
-        return $this;
     }
 
     public function getStartTime(): ?\DateTimeInterface
@@ -154,11 +177,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->startTime;
     }
 
-    public function setStartTime(?\DateTimeInterface $startTime): self
+    public function setStartTime(?\DateTimeInterface $startTime): void
     {
         $this->startTime = $startTime;
-
-        return $this;
     }
 
     public function getExpireTime(): ?\DateTimeInterface
@@ -166,11 +187,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->expireTime;
     }
 
-    public function setExpireTime(?\DateTimeInterface $expireTime): self
+    public function setExpireTime(?\DateTimeInterface $expireTime): void
     {
         $this->expireTime = $expireTime;
-
-        return $this;
     }
 
     public function getUseTime(): ?\DateTimeInterface
@@ -178,23 +197,19 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->useTime;
     }
 
-    public function setUseTime(?\DateTimeInterface $useTime): self
+    public function setUseTime(?\DateTimeInterface $useTime): void
     {
         $this->useTime = $useTime;
-
-        return $this;
     }
-    
+
     public function getSendTime(): ?\DateTimeInterface
     {
         return $this->sendTime;
     }
 
-    public function setSendTime(?\DateTimeInterface $sendTime): self
+    public function setSendTime(?\DateTimeInterface $sendTime): void
     {
         $this->sendTime = $sendTime;
-
-        return $this;
     }
 
     public function getRemark(): ?string
@@ -202,11 +217,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->remark;
     }
 
-    public function setRemark(?string $remark): static
+    public function setRemark(?string $remark): void
     {
         $this->remark = $remark;
-
-        return $this;
     }
 
     // 状态相关
@@ -215,11 +228,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->valid;
     }
 
-    public function setValid(bool $valid): self
+    public function setValid(bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
     public function getStatus(): ?ChanceStatusEnum
@@ -227,11 +238,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->status;
     }
 
-    public function setStatus(ChanceStatusEnum $status): static
+    public function setStatus(ChanceStatusEnum $status): void
     {
         $this->status = $status;
-
-        return $this;
     }
 
     // 关联实体相关
@@ -240,11 +249,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->activity;
     }
 
-    public function setActivity(?Activity $activity): self
+    public function setActivity(?Activity $activity): void
     {
         $this->activity = $activity;
-
-        return $this;
     }
 
     public function getUser(): ?UserInterface
@@ -252,11 +259,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->user;
     }
 
-    public function setUser(?UserInterface $user): self
+    public function setUser(?UserInterface $user): void
     {
         $this->user = $user;
-
-        return $this;
     }
 
     public function getPool(): ?Pool
@@ -264,11 +269,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->pool;
     }
 
-    public function setPool(?Pool $pool): self
+    public function setPool(?Pool $pool): void
     {
         $this->pool = $pool;
-
-        return $this;
     }
 
     public function getPrize(): ?Prize
@@ -276,11 +279,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->prize;
     }
 
-    public function setPrize(?Prize $prize): self
+    public function setPrize(?Prize $prize): void
     {
         $this->prize = $prize;
-
-        return $this;
     }
 
     public function getConsignee(): ?Consignee
@@ -288,16 +289,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->consignee;
     }
 
-    public function setConsignee(Consignee $consignee): self
+    public function setConsignee(?Consignee $consignee): void
     {
-        // set the owning side of the relation if necessary
-        if ($consignee->getChance() !== $this) {
-            $consignee->setChance($this);
-        }
-
         $this->consignee = $consignee;
-
-        return $this;
     }
 
     /**
@@ -308,17 +302,15 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->stocks;
     }
 
-    public function addStock(Stock $stock): self
+    public function addStock(Stock $stock): void
     {
         if (!$this->stocks->contains($stock)) {
-            $this->stocks[] = $stock;
+            $this->stocks->add($stock);
             $stock->setChance($this);
         }
-
-        return $this;
     }
 
-    public function removeStock(Stock $stock): self
+    public function removeStock(Stock $stock): void
     {
         if ($this->stocks->removeElement($stock)) {
             // set the owning side to null (unless already changed)
@@ -326,44 +318,54 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
                 $stock->setChance(null);
             }
         }
-
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getSendResult(): ?array
     {
         return $this->sendResult;
     }
 
-    public function setSendResult(?array $sendResult): self
+    /**
+     * @param array<string, mixed>|null $sendResult
+     */
+    public function setSendResult(?array $sendResult): void
     {
         $this->sendResult = $sendResult;
-
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getPoolContext(): ?array
     {
         return $this->poolContext;
     }
 
-    public function setPoolContext(?array $poolContext): self
+    /**
+     * @param array<string, mixed>|null $poolContext
+     */
+    public function setPoolContext(?array $poolContext): void
     {
         $this->poolContext = $poolContext;
-
-        return $this;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>|null
+     */
     public function getProbabilityContext(): ?array
     {
         return $this->probabilityContext;
     }
 
-    public function setProbabilityContext(?array $probabilityContext): self
+    /**
+     * @param array<int, array<string, mixed>>|null $probabilityContext
+     */
+    public function setProbabilityContext(?array $probabilityContext): void
     {
         $this->probabilityContext = $probabilityContext;
-
-        return $this;
     }
 
     // 奖品配置信息
@@ -378,11 +380,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->reviewTime;
     }
 
-    public function setReviewTime(?string $reviewTime): static
+    public function setReviewTime(?string $reviewTime): void
     {
         $this->reviewTime = $reviewTime;
-
-        return $this;
     }
 
     public function getReviewUser(): ?UserInterface
@@ -390,11 +390,9 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->reviewUser;
     }
 
-    public function setReviewUser(?UserInterface $reviewUser): static
+    public function setReviewUser(?UserInterface $reviewUser): void
     {
         $this->reviewUser = $reviewUser;
-
-        return $this;
     }
 
     // 版本控制相关
@@ -403,61 +401,15 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         return $this->lockVersion;
     }
 
-    public function setLockVersion(?int $lockVersion): self
+    public function setLockVersion(?int $lockVersion): void
     {
         $this->lockVersion = $lockVersion;
-
-        return $this;
     }
 
-    // 审计信息相关
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }public function retrieveApiArray(): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function retrieveApiArray(): array
     {
         return [
             'id' => $this->getId(),
@@ -469,11 +421,17 @@ class Chance implements PlainArrayInterface, ApiArrayInterface, AdminArrayInterf
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrievePlainArray(): array
     {
         return $this->retrieveApiArray();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminArray(): array
     {
         return [

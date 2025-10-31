@@ -4,11 +4,21 @@ namespace LotteryBundle\Tests\Entity;
 
 use LotteryBundle\Entity\Pool;
 use LotteryBundle\Entity\PoolAttribute;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class PoolAttributeTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(PoolAttribute::class)]
+final class PoolAttributeTest extends AbstractEntityTestCase
 {
-    public function test_constructor_setsDefaultValues(): void
+    protected function createEntity(): PoolAttribute
+    {
+        return new PoolAttribute();
+    }
+
+    public function testConstructorSetsDefaultValues(): void
     {
         $attribute = new PoolAttribute();
 
@@ -19,85 +29,85 @@ class PoolAttributeTest extends TestCase
         $this->assertNull($attribute->getPool());
     }
 
-    public function test_implements_stringable(): void
+    public function testImplementsStringable(): void
     {
         $attribute = new PoolAttribute();
 
         $this->assertInstanceOf(\Stringable::class, $attribute);
     }
 
-    public function test_setName_setsAndReturnsName(): void
+    public function testSetNameSetsAndReturnsName(): void
     {
         $attribute = new PoolAttribute();
         $name = 'test_attribute';
 
-        $result = $attribute->setName($name);
+        $attribute->setName($name);
 
         $this->assertEquals($name, $attribute->getName());
-        $this->assertSame($attribute, $result);
     }
 
-    public function test_setValue_setsAndReturnsValue(): void
+    public function testSetValueSetsAndReturnsValue(): void
     {
         $attribute = new PoolAttribute();
         $value = 'test_value';
 
-        $result = $attribute->setValue($value);
+        $attribute->setValue($value);
 
         $this->assertEquals($value, $attribute->getValue());
-        $this->assertSame($attribute, $result);
     }
 
-    public function test_setRemark_setsAndReturnsRemark(): void
+    public function testSetRemarkSetsAndReturnsRemark(): void
     {
         $attribute = new PoolAttribute();
         $remark = 'test remark';
 
-        $result = $attribute->setRemark($remark);
+        $attribute->setRemark($remark);
 
         $this->assertEquals($remark, $attribute->getRemark());
-        $this->assertSame($attribute, $result);
     }
 
-    public function test_setRemark_withNull_setsNull(): void
+    public function testSetRemarkWithNullSetsNull(): void
     {
         $attribute = new PoolAttribute();
 
-        $result = $attribute->setRemark(null);
+        $attribute->setRemark(null);
 
         $this->assertNull($attribute->getRemark());
-        $this->assertSame($attribute, $result);
     }
 
-    public function test_setPool_setsAndReturnsPool(): void
+    public function testSetPoolSetsAndReturnsPool(): void
     {
         $attribute = new PoolAttribute();
+        /*
+         * 使用具体类 Pool 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证PoolAttribute与Pool的关联关系设置
+         * 2) 使用合理性：Pool是Entity类，测试仅需要验证关联设置，不需要具体实现
+         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
+         */
         $pool = $this->createMock(Pool::class);
 
-        $result = $attribute->setPool($pool);
+        $attribute->setPool($pool);
 
         $this->assertSame($pool, $attribute->getPool());
-        $this->assertSame($attribute, $result);
     }
 
-    public function test_setPool_withNull_setsNull(): void
+    public function testSetPoolWithNullSetsNull(): void
     {
         $attribute = new PoolAttribute();
 
-        $result = $attribute->setPool(null);
+        $attribute->setPool(null);
 
         $this->assertNull($attribute->getPool());
-        $this->assertSame($attribute, $result);
     }
 
-    public function test_toString_withNullOrZeroId_returnsEmptyString(): void
+    public function testToStringWithNullOrZeroIdReturnsEmptyString(): void
     {
         $attribute = new PoolAttribute();
 
         $this->assertEquals('', (string) $attribute);
     }
 
-    public function test_toString_withNameAndValue_returnsFormattedString(): void
+    public function testToStringWithNameAndValueReturnsFormattedString(): void
     {
         $attribute = new PoolAttribute();
         $attribute->setName('test_name');
@@ -112,31 +122,39 @@ class PoolAttributeTest extends TestCase
         $this->assertEquals('test_name:test_value', (string) $attribute);
     }
 
-    public function test_ipFields_settersAndGetters(): void
+    public function testIpFieldsSettersAndGetters(): void
     {
         $attribute = new PoolAttribute();
         $createIp = '192.168.1.1';
         $updateIp = '192.168.1.2';
 
-        $result1 = $attribute->setCreatedFromIp($createIp);
-        $result2 = $attribute->setUpdatedFromIp($updateIp);
+        $attribute->setCreatedFromIp($createIp);
+        $attribute->setUpdatedFromIp($updateIp);
 
         $this->assertEquals($createIp, $attribute->getCreatedFromIp());
         $this->assertEquals($updateIp, $attribute->getUpdatedFromIp());
-        $this->assertSame($attribute, $result1);
-        $this->assertSame($attribute, $result2);
     }
 
-    public function test_ipFields_withNull_setsNull(): void
+    public function testIpFieldsWithNullSetsNull(): void
     {
         $attribute = new PoolAttribute();
 
-        $result1 = $attribute->setCreatedFromIp(null);
-        $result2 = $attribute->setUpdatedFromIp(null);
+        $attribute->setCreatedFromIp(null);
+        $attribute->setUpdatedFromIp(null);
 
         $this->assertNull($attribute->getCreatedFromIp());
         $this->assertNull($attribute->getUpdatedFromIp());
-        $this->assertSame($attribute, $result1);
-        $this->assertSame($attribute, $result2);
     }
-} 
+
+    /**
+     * @return iterable<string, array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        yield 'name' => ['name', 'test_attribute'];
+        yield 'value' => ['value', 'test_value'];
+        yield 'remark' => ['remark', 'test remark'];
+        yield 'createdFromIp' => ['createdFromIp', '192.168.1.1'];
+        yield 'updatedFromIp' => ['updatedFromIp', '192.168.1.2'];
+    }
+}

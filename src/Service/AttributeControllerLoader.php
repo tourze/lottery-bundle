@@ -40,6 +40,7 @@ class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInter
         $collection->addCollection($this->controllerLoader->load(LotteryAddressController::class));
         $collection->addCollection($this->controllerLoader->load(LotteryRecordsController::class));
         $collection->addCollection($this->controllerLoader->load(LotteryRulesController::class));
+
         return $collection;
     }
 }

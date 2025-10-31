@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -8,105 +10,111 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotteryBundle\Repository\ActivityRepository;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\ResourceManageBundle\Model\ResourceIdentity;
 
+/**
+ * @implements PlainArrayInterface<string, mixed>
+ * @implements AdminArrayInterface<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: ActivityRepository::class)]
 #[ORM\Table(name: 'lottery_activity', options: ['comment' => '抽奖活动'])]
 class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface, ResourceIdentity
 {
     use TimestampableAware;
     use BlameableAware;
+    use IpTraceableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    private int $id = 0;
 
     // 基本信息
     #[ORM\Column(type: Types::STRING, length: 120, unique: true, options: ['comment' => '标题'])]
+    #[Assert\NotBlank(message: '活动标题不能为空')]
+    #[Assert\Length(max: 120, maxMessage: '活动标题不能超过 {{ limit }} 个字符')]
     private string $title = '';
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '规则文本'])]
+    #[Assert\Length(max: 65535, maxMessage: '规则文本不能超过 {{ limit }} 个字符')]
     private ?string $textRule = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '开始时间'])]
+    #[Assert\NotNull(message: '开始时间不能为空')]
     private ?\DateTimeImmutable $startTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '结束时间'])]
+    #[Assert\NotNull(message: '结束时间不能为空')]
+    #[Assert\GreaterThan(propertyPath: 'startTime', message: '结束时间必须晚于开始时间')]
     private ?\DateTimeImmutable $endTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后兑奖时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class)]
     private ?\DateTimeImmutable $lastRedeemTime = null;
-    
+
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '头图'])]
+    #[Assert\Length(max: 255, maxMessage: '头图路径不能超过 {{ limit }} 个字符')]
+    #[Assert\Url(message: '头图路径格式不正确')]
     private ?string $headPhoto = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '找不到机会提醒文案'])]
+    #[Assert\Length(max: 100, maxMessage: '提醒文案不能超过 {{ limit }} 个字符')]
     private ?string $noChanceText = '您已没有抽奖机会';
 
     // 分享相关
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享路径'])]
+    #[Assert\Length(max: 100, maxMessage: '分享路径不能超过 {{ limit }} 个字符')]
     private ?string $sharePath = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '分享标题'])]
+    #[Assert\Length(max: 100, maxMessage: '分享标题不能超过 {{ limit }} 个字符')]
     private ?string $shareTitle = null;
 
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '分享图片'])]
+    #[Assert\Length(max: 255, maxMessage: '分享图片路径不能超过 {{ limit }} 个字符')]
+    #[Assert\Url(message: '分享图片路径格式不正确')]
     private ?string $sharePicture = null;
 
     // 关联实体
     /**
-     * @var Collection<Chance>
+     * @var Collection<int, Chance>
      */
     #[Ignore]
     #[ORM\OneToMany(targetEntity: Chance::class, mappedBy: 'activity')]
     private Collection $chances;
 
     /**
-     * @var Collection<Pool>
+     * @var Collection<int, Pool>
      */
     #[ORM\ManyToMany(targetEntity: Pool::class, inversedBy: 'activities', fetch: 'EXTRA_LAZY')]
     private Collection $pools;
-
-    /**
-     * @var Collection<ActivityAttribute>
-     */
-    #[ORM\OneToMany(targetEntity: ActivityAttribute::class, mappedBy: 'activity', orphanRemoval: true)]
-    private Collection $attributes;
 
     // 状态信息
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
+    #[Assert\Type(type: 'bool')]
     private ?bool $valid = false;
 
     // 审计信息
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __construct()
     {
         $this->chances = new ArrayCollection();
         $this->pools = new ArrayCollection();
-        $this->attributes = new ArrayCollection();
     }
 
     public function __toString(): string
     {
-        if ($this->getId() === null || $this->getId() === 0) {
+        if (0 === $this->getId()) {
             return '';
         }
 
@@ -114,7 +122,7 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
     }
 
     // ID相关
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -125,11 +133,9 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(string $title): void
     {
         $this->title = $title;
-
-        return $this;
     }
 
     public function getTextRule(): ?string
@@ -137,11 +143,9 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->textRule;
     }
 
-    public function setTextRule(?string $textRule): self
+    public function setTextRule(?string $textRule): void
     {
         $this->textRule = $textRule;
-
-        return $this;
     }
 
     public function getStartTime(): ?\DateTimeImmutable
@@ -149,11 +153,9 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->startTime;
     }
 
-    public function setStartTime(\DateTimeImmutable $startTime): self
+    public function setStartTime(\DateTimeImmutable $startTime): void
     {
         $this->startTime = $startTime;
-
-        return $this;
     }
 
     public function getEndTime(): ?\DateTimeImmutable
@@ -161,11 +163,9 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->endTime;
     }
 
-    public function setEndTime(\DateTimeImmutable $endTime): self
+    public function setEndTime(\DateTimeImmutable $endTime): void
     {
         $this->endTime = $endTime;
-
-        return $this;
     }
 
     public function getLastRedeemTime(): ?\DateTimeImmutable
@@ -183,11 +183,9 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->headPhoto;
     }
 
-    public function setHeadPhoto(?string $headPhoto): self
+    public function setHeadPhoto(?string $headPhoto): void
     {
         $this->headPhoto = $headPhoto;
-
-        return $this;
     }
 
     public function getNoChanceText(): ?string
@@ -195,11 +193,9 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->noChanceText;
     }
 
-    public function setNoChanceText(?string $noChanceText): static
+    public function setNoChanceText(?string $noChanceText): void
     {
         $this->noChanceText = $noChanceText;
-
-        return $this;
     }
 
     // 分享相关
@@ -242,17 +238,15 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->chances;
     }
 
-    public function addChance(Chance $chance): self
+    public function addChance(Chance $chance): void
     {
         if (!$this->chances->contains($chance)) {
-            $this->chances[] = $chance;
+            $this->chances->add($chance);
             $chance->setActivity($this);
         }
-
-        return $this;
     }
 
-    public function removeChance(Chance $chance): self
+    public function removeChance(Chance $chance): void
     {
         if ($this->chances->removeElement($chance)) {
             // set the owning side to null (unless already changed)
@@ -260,8 +254,6 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
                 $chance->setActivity(null);
             }
         }
-
-        return $this;
     }
 
     /**
@@ -272,53 +264,19 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->pools;
     }
 
-    public function addPool(Pool $pool): self
+    public function addPool(Pool $pool): void
     {
         if (!$this->pools->contains($pool)) {
-            $this->pools[] = $pool;
+            $this->pools->add($pool);
             $pool->addActivity($this);
         }
-
-        return $this;
     }
 
-    public function removePool(Pool $pool): self
+    public function removePool(Pool $pool): void
     {
         if ($this->pools->removeElement($pool)) {
             $pool->removeActivity($this);
         }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ActivityAttribute>
-     */
-    public function getAttributes(): Collection
-    {
-        return $this->attributes;
-    }
-
-    public function addActivityAttribute(ActivityAttribute $activityAttribute): self
-    {
-        if (!$this->attributes->contains($activityAttribute)) {
-            $this->attributes[] = $activityAttribute;
-            $activityAttribute->setActivity($this);
-        }
-
-        return $this;
-    }
-
-    public function removeActivityAttribute(ActivityAttribute $activityAttribute): self
-    {
-        if ($this->attributes->removeElement($activityAttribute)) {
-            // set the owning side to null (unless already changed)
-            if ($activityAttribute->getActivity() === $this) {
-                $activityAttribute->setActivity(null);
-            }
-        }
-
-        return $this;
     }
 
     // 状态相关
@@ -327,39 +285,17 @@ class Activity implements \Stringable, PlainArrayInterface, AdminArrayInterface,
         return $this->valid;
     }
 
-    public function setValid(?bool $valid): self
+    public function setValid(?bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
-    // 审计信息相关
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
+    // 审计信息相关 - 使用 IpTraceableAware trait
 
-        return $this;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-public function retrievePlainArray(): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function retrievePlainArray(): array
     {
         return [
             'id' => $this->getId(),
@@ -372,6 +308,9 @@ public function retrievePlainArray(): array
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminArray(): array
     {
         return [

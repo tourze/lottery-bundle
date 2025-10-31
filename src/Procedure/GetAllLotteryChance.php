@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Procedure;
 
-use Doctrine\Common\Collections\Criteria;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Event\AllLotteryChanceEvent;
@@ -47,7 +48,7 @@ class GetAllLotteryChance extends CacheableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if ($activity === null) {
+        if (null === $activity) {
             throw new ApiException('活动无效');
         }
 
@@ -58,42 +59,61 @@ class GetAllLotteryChance extends CacheableProcedure
             ->setParameter('valid', false)
             ->setParameter('canShow', true)
             ->setMaxResults($this->pageSize)
-            ->orderBy('c.id', Criteria::DESC);
+            ->orderBy('c.id', 'DESC')
+        ;
 
         $event = new AllLotteryChanceEvent();
-        $event->setUser($this->security->getUser());
+        $currentUser = $this->security->getUser();
+        if (null !== $currentUser) {
+            $event->setUser($currentUser);
+        }
         $event->setQueryBuilder($qb);
-        $event->setActivityId((string)$activity->getId());
+        $event->setActivityId((string) $activity->getId());
         $this->eventDispatcher->dispatch($event);
 
-        $chance = $event->getQueryBuilder()->getQuery()->getResult();
+        $chances = $event->getQueryBuilder()->getQuery()->getResult();
+        assert(is_array($chances));
 
         $list = [];
-        /** @var Chance $item */
-        foreach ($chance as $item) {
+        foreach ($chances as $item) {
+            if (!$item instanceof Chance) {
+                continue;
+            }
             // 过滤掉文字奖品，默认文字奖品为不中奖
-            if (empty($item->getPrize()) || TextResourceProvider::CODE === $item->getPrize()->getType()) {
+            if (null === $item->getPrize() || TextResourceProvider::CODE === $item->getPrize()->getType()) {
                 continue;
             }
 
             $tmp = $item->retrieveApiArray();
             // 这里不返回地址用户等敏感信息
-            unset($tmp['consignee']);
-            unset($tmp['user']);
+            unset($tmp['consignee'], $tmp['user']);
+
             $user = $item->getUser();
+            if (null === $user) {
+                continue;
+            }
             $str = method_exists($user, 'getNickName') ? $user->getNickName() : $user->getUserIdentifier();
+            assert(is_string($str));
+
             $tmp['nick_name'] = mb_substr($str, 0, 1) . '**' . mb_substr($str, -1, 1);
             $list[] = $tmp;
         }
 
-        return $list;
+        return ['data' => $list];
     }
 
     public function getCacheKey(JsonRpcRequest $request): string
     {
-        $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser() !== null) {
-            $key .= '-' . $this->security->getUser()->getUserIdentifier();
+        $params = $request->getParams();
+        if (null === $params) {
+            $key = $this::class . '-no-params';
+        } else {
+            $key = $this->buildParamCacheKey($params);
+        }
+
+        $user = $this->security->getUser();
+        if (null !== $user) {
+            $key .= '-' . $user->getUserIdentifier();
         }
 
         return $key;

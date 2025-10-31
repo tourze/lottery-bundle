@@ -3,12 +3,17 @@
 namespace LotteryBundle\Tests\Message;
 
 use LotteryBundle\Message\SendPrizeMessage;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\AsyncContracts\AsyncMessageInterface;
 
-class SendPrizeMessageTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(SendPrizeMessage::class)]
+final class SendPrizeMessageTest extends TestCase
 {
-    public function test_constructor_createsInstance(): void
+    public function testConstructorCreatesInstance(): void
     {
         $message = new SendPrizeMessage();
 
@@ -16,7 +21,7 @@ class SendPrizeMessageTest extends TestCase
         $this->assertInstanceOf(AsyncMessageInterface::class, $message);
     }
 
-    public function test_setChanceId_setsAndGetsValue(): void
+    public function testSetChanceIdSetsAndGetsValue(): void
     {
         $message = new SendPrizeMessage();
         $chanceId = '123';
@@ -26,7 +31,7 @@ class SendPrizeMessageTest extends TestCase
         $this->assertSame($chanceId, $message->getChanceId());
     }
 
-    public function test_setChanceId_withNumericString_setsAndGetsValue(): void
+    public function testSetChanceIdWithNumericStringSetsAndGetsValue(): void
     {
         $message = new SendPrizeMessage();
         $chanceId = '456';
@@ -35,4 +40,4 @@ class SendPrizeMessageTest extends TestCase
 
         $this->assertSame($chanceId, $message->getChanceId());
     }
-} 
+}

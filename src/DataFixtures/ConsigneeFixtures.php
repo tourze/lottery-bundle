@@ -11,10 +11,13 @@ use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Consignee;
 use LotteryBundle\Entity\Prize;
 use LotteryBundle\Enum\ChanceStatusEnum;
+use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
  * 收货人数据填充
  */
+#[When(env: 'test')]
+#[When(env: 'dev')]
 class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
 {
     // 省份列表
@@ -23,7 +26,7 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
         '河北省', '山西省', '辽宁省', '吉林省', '黑龙江省',
         '江苏省', '浙江省', '安徽省', '福建省', '江西省', '山东省',
         '河南省', '湖北省', '湖南省', '广东省', '海南省',
-        '四川省', '贵州省', '云南省', '陕西省', '甘肃省', '青海省'
+        '四川省', '贵州省', '云南省', '陕西省', '甘肃省', '青海省',
     ];
 
     // 城市列表
@@ -31,7 +34,7 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
         '北京', '上海', '广州', '深圳', '杭州',
         '南京', '武汉', '成都', '重庆', '西安',
         '天津', '苏州', '郑州', '长沙', '沈阳',
-        '青岛', '宁波', '东莞', '无锡', '厦门'
+        '青岛', '宁波', '东莞', '无锡', '厦门',
     ];
 
     // 区县列表
@@ -39,7 +42,7 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
         '朝阳区', '海淀区', '东城区', '西城区', '丰台区',
         '黄浦区', '徐汇区', '长宁区', '静安区', '普陀区',
         '天河区', '越秀区', '白云区', '荔湾区', '海珠区',
-        '南山区', '福田区', '罗湖区', '龙岗区', '宝安区'
+        '南山区', '福田区', '罗湖区', '龙岗区', '宝安区',
     ];
 
     // 街道列表
@@ -47,7 +50,7 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
         '人民路', '中山路', '建设路', '解放路', '新华路',
         '和平路', '幸福路', '长江路', '黄河路', '珠江路',
         '朝阳街', '东风街', '北京路', '上海路', '南京路',
-        '胜利大道', '文化大道', '科技大道', '创业大道', '富强大道'
+        '胜利大道', '文化大道', '科技大道', '创业大道', '富强大道',
     ];
 
     // 小区列表
@@ -55,7 +58,7 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
         '阳光小区', '翠园小区', '和谐家园', '金色家园', '绿色家园',
         '幸福小区', '康乐小区', '富贵花园', '竹苑小区', '枫林湾',
         '龙湖花园', '碧水云天', '锦绣山河', '盛世华庭', '香榭丽舍',
-        '保利花园', '万科城市花园', '恒大名都', '中海国际', '绿地世纪城'
+        '保利花园', '万科城市花园', '恒大名都', '中海国际', '绿地世纪城',
     ];
 
     public function load(ObjectManager $manager): void
@@ -75,13 +78,13 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
         // 获取实物奖品列表
         $physicalPrizes = [
             $this->getReference(PrizeFixtures::PRIZE_REFERENCE_1, Prize::class),
-            $this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class)
+            $this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class),
         ];
 
         // 生成200个收货人信息，与前面生成的Chance数据模拟关联
         $batchSize = 50;
 
-        for ($i = 0; $i < 200; $i++) {
+        for ($i = 0; $i < 200; ++$i) {
             $consignee = new Consignee();
 
             // 使用Faker生成真实姓名
@@ -124,9 +127,9 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
             // 创建新的Chance并设置关系
             $chance = new Chance();
             $chance->setTitle('实物奖品中奖-' . $i);
-            $chance->setStartTime($faker->dateTimeBetween('-30 days', 'now'));
-            $chance->setExpireTime($faker->dateTimeBetween('now', '+30 days'));
-            $chance->setUseTime($faker->dateTimeBetween('-10 days', 'now'));
+            $chance->setStartTime(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-30 days', 'now')));
+            $chance->setExpireTime(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('now', '+30 days')));
+            $chance->setUseTime(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-10 days', 'now')));
             $chance->setValid(true);
             $chance->setStatus(ChanceStatusEnum::WINNING);
 
@@ -155,7 +158,7 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
                 // 重新获取引用
                 $physicalPrizes = [
                     $this->getReference(PrizeFixtures::PRIZE_REFERENCE_1, Prize::class),
-                    $this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class)
+                    $this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class),
                 ];
             }
         }
@@ -168,7 +171,7 @@ class ConsigneeFixtures extends Fixture implements DependentFixtureInterface
         return [
             ChanceFixtures::class,
             PrizeFixtures::class,
-            ActivityFixtures::class
+            ActivityFixtures::class,
         ];
     }
 }

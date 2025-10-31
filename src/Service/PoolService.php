@@ -14,6 +14,9 @@ class PoolService
     {
     }
 
+    /**
+     * 不考虑并发 - 奖池分配为随机操作，无需并发控制
+     */
     public function dispatch(Chance $chance): void
     {
         // 奖池判断事件
@@ -22,14 +25,20 @@ class PoolService
         $event->setChance($chance);
         $event->setUser($chance->getUser());
         $this->eventDispatcher->dispatch($event);
-        if ($chance->getPool() !== null) {
+        if (null !== $chance->getPool()) {
             return;
         }
 
         // 如果上面的事件，没确认奖池，我们就进入随机奖池
-        $pools = $chance->getActivity()->getPools()
-            ->filter(fn (Pool $item) => $item->isValid())
-            ->toArray();
+        $activity = $chance->getActivity();
+        if (null === $activity) {
+            throw new LotteryException('活动不能为空');
+        }
+
+        $pools = $activity->getPools()
+            ->filter(fn (Pool $item) => true === $item->isValid())
+            ->toArray()
+        ;
         $pools = array_values($pools);
         $c = count($pools);
         if (0 === $c) {

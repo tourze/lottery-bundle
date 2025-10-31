@@ -2,6 +2,7 @@
 
 namespace LotteryBundle\Controller\Admin;
 
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -23,14 +24,25 @@ use LotteryBundle\Enum\ChanceStatusEnum;
 
 /**
  * 抽奖机会管理控制器
+ *
+ * @template TEntity of Chance
+ * @extends AbstractCrudController<TEntity>
  */
-class ChanceCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/lottery/chance',
+    routeName: 'lottery_chance',
+)]
+final class ChanceCrudController extends AbstractCrudController
 {
+    /**
+     * @phpstan-return class-string<TEntity>
+     */
     public static function getEntityFqcn(): string
     {
+        /** @phpstan-var class-string<TEntity> */
         return Chance::class;
     }
-    
+
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
@@ -43,43 +55,51 @@ class ChanceCrudController extends AbstractCrudController
             ->setHelp('index', '这里列出了所有的抽奖机会')
             ->setDefaultSort(['id' => 'DESC'])
             ->setSearchFields(['id', 'title', 'remark'])
-            ->setPaginatorPageSize(30); // 增加每页显示数量，便于查看
+            ->setPaginatorPageSize(30) // 增加每页显示数量，便于查看
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         // ID字段
-        yield IdField::new('id')
+        yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
-            
+            ->setMaxLength(9999)
+        ;
+
         // 基本信息
         yield TextField::new('title', '任务标题')
-            ->setRequired(false);
-            
+            ->setRequired(false)
+        ;
+
         yield TextField::new('remark', '备注')
             ->hideOnIndex()
-            ->setRequired(false);
-            
+            ->setRequired(false)
+        ;
+
         // 时间信息
         yield DateTimeField::new('startTime', '开始时间')
             ->setRequired(false)
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
-            
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
+
         yield DateTimeField::new('expireTime', '失效时间')
             ->setRequired(false)
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
-            
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
+
         yield DateTimeField::new('useTime', '使用时间')
             ->hideOnIndex()
             ->setRequired(false)
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
-            
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
+
         yield DateTimeField::new('sendTime', '发送时间')
             ->hideOnIndex()
             ->setRequired(false)
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
-            
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
+
         // 状态信息
         yield ChoiceField::new('status', '状态')
             ->setChoices([
@@ -90,61 +110,73 @@ class ChanceCrudController extends AbstractCrudController
                 '已过期' => ChanceStatusEnum::EXPIRED,
             ])
             ->renderAsBadges()
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield BooleanField::new('valid', '是否有效')
-            ->renderAsSwitch(true);
-            
+            ->renderAsSwitch(true)
+        ;
+
         // 关联实体
         yield AssociationField::new('activity', '关联活动')
-            ->setRequired(true);
-            
+            ->setRequired(true)
+        ;
+
         yield AssociationField::new('user', '用户')
-            ->setRequired(false);
-            
+            ->setRequired(false)
+        ;
+
         yield AssociationField::new('pool', '关联奖池')
             ->hideOnIndex()
-            ->setRequired(false);
-            
+            ->setRequired(false)
+        ;
+
         yield AssociationField::new('prize', '获得奖品')
             ->hideOnIndex()
-            ->setRequired(false);
-            
+            ->setRequired(false)
+        ;
+
         yield AssociationField::new('consignee', '收货信息')
             ->hideOnIndex()
-            ->setRequired(false);
-            
+            ->setRequired(false)
+        ;
+
         yield AssociationField::new('stocks', '库存信息')
             ->hideOnIndex()
-            ->setRequired(false);
-            
+            ->setRequired(false)
+        ;
+
         // 审计信息
         yield TextField::new('createdBy', '创建人')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield TextField::new('updatedBy', '更新人')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield DateTimeField::new('createTime', '创建时间')
             ->hideOnForm()
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
-            
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
+
         yield DateTimeField::new('updateTime', '更新时间')
             ->hideOnForm()
             ->hideOnIndex()
-            ->setFormat('yyyy-MM-dd HH:mm:ss');
+            ->setFormat('yyyy-MM-dd HH:mm:ss')
+        ;
     }
-    
+
     public function configureActions(Actions $actions): Actions
     {
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_EDIT, Action::DETAIL)
-            ->reorder(Crud::PAGE_INDEX, [Action::DETAIL, Action::EDIT, Action::DELETE]);
+        ;
     }
-    
+
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -162,6 +194,7 @@ class ChanceCrudController extends AbstractCrudController
             ->add(DateTimeFilter::new('expireTime', '失效时间'))
             ->add(DateTimeFilter::new('useTime', '使用时间'))
             ->add(DateTimeFilter::new('sendTime', '发送时间'))
-            ->add(BooleanFilter::new('valid', '是否有效'));
+            ->add(BooleanFilter::new('valid', '是否有效'))
+        ;
     }
-} 
+}

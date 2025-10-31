@@ -6,15 +6,19 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
+use Faker\Generator;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Pool;
 use LotteryBundle\Entity\Prize;
 use LotteryBundle\Enum\ChanceStatusEnum;
+use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
  * 抽奖机会数据填充
  */
+#[When(env: 'test')]
+#[When(env: 'dev')]
 class ChanceFixtures extends Fixture implements DependentFixtureInterface
 {
     // 使用常量定义引用名称
@@ -23,179 +27,229 @@ class ChanceFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        // 创建Faker实例
         $faker = Factory::create('zh_CN');
 
-        // 保留原有的两个特殊引用对象
-        $chance1 = new Chance();
-        $chance1->setTitle('测试抽奖机会1');
-        $chance1->setStartTime(new \DateTime('now'));
-        $chance1->setExpireTime(new \DateTime('+7 days'));
-        $chance1->setValid(true);
-        $chance1->setStatus(ChanceStatusEnum::INIT);
-        $chance1->setActivity($this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_1, Activity::class));
+        $this->createInitialChances($manager);
+        $this->createBulkChances($manager, $faker);
+    }
 
+    private function createInitialChances(ObjectManager $manager): void
+    {
+        $chance1 = $this->createChance(
+            '测试抽奖机会1',
+            new \DateTimeImmutable('now'),
+            new \DateTimeImmutable('+7 days'),
+            ChanceStatusEnum::INIT
+        );
+        $chance1->setActivity($this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_1, Activity::class));
         $manager->persist($chance1);
 
-        $chance2 = new Chance();
-        $chance2->setTitle('测试抽奖机会2');
-        $chance2->setStartTime(new \DateTime('now - 1 day'));
-        $chance2->setExpireTime(new \DateTime('+6 days'));
-        $chance2->setUseTime(new \DateTime('now'));
-        $chance2->setValid(true);
-        $chance2->setStatus(ChanceStatusEnum::WINNING);
+        $chance2 = $this->createChance(
+            '测试抽奖机会2',
+            new \DateTimeImmutable('now - 1 day'),
+            new \DateTimeImmutable('+6 days'),
+            ChanceStatusEnum::WINNING
+        );
         $chance2->setActivity($this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_1, Activity::class));
         $chance2->setPrize($this->getReference(PrizeFixtures::PRIZE_REFERENCE_3, Prize::class));
-
-        $chance2->setPoolContext([
-            'pool_id' => 2,
-            'pool_name' => '测试奖池2',
-        ]);
-
-        $chance2->setProbabilityContext([
-            'original_probability' => 30,
-            'adjusted_probability' => 35,
-        ]);
-
+        $chance2->setUseTime(new \DateTimeImmutable('now'));
+        $chance2->setPoolContext(['pool_id' => 2, 'pool_name' => '测试奖池2']);
+        $chance2->setProbabilityContext([['original_probability' => 30, 'adjusted_probability' => 35]]);
         $manager->persist($chance2);
 
-        // 添加引用以便其他 Fixture 使用
         $this->addReference(self::CHANCE_REFERENCE_1, $chance1);
         $this->addReference(self::CHANCE_REFERENCE_2, $chance2);
+    }
 
-        // 批量生成至少1000个抽奖机会
-        $activities = [
-            $this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_1, Activity::class),
-            $this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_2, Activity::class)
-        ];
+    private function createChance(
+        string $title,
+        \DateTimeImmutable $startTime,
+        \DateTimeImmutable $expireTime,
+        ChanceStatusEnum $status,
+    ): Chance {
+        $chance = new Chance();
+        $chance->setTitle($title);
+        $chance->setStartTime($startTime);
+        $chance->setExpireTime($expireTime);
+        $chance->setValid(true);
+        $chance->setStatus($status);
 
-        $pools = [
-            $this->getReference(PoolFixtures::POOL_REFERENCE_1, Pool::class),
-            $this->getReference(PoolFixtures::POOL_REFERENCE_2, Pool::class)
-        ];
+        return $chance;
+    }
 
-        $prizes = [
-            $this->getReference(PrizeFixtures::PRIZE_REFERENCE_1, Prize::class),
-            $this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class),
-            $this->getReference(PrizeFixtures::PRIZE_REFERENCE_3, Prize::class),
-            $this->getReference(PrizeFixtures::PRIZE_REFERENCE_4, Prize::class),
-            null // 部分抽奖机会未指定奖品
-        ];
+    private function createBulkChances(ObjectManager $manager, Generator $faker): void
+    {
+        $collections = $this->getCollections();
+        $batchSize = 100;
 
-        $statusValues = [
-            ChanceStatusEnum::INIT,
-            ChanceStatusEnum::WINNING,
-            ChanceStatusEnum::SENT,
-            ChanceStatusEnum::EXPIRED
-        ];
-
-        $batchSize = 100; // 批处理大小，用于提高性能
-
-        for ($i = 0; $i < 1000; $i++) {
-            $chance = new Chance();
-
-            // 使用Faker生成随机标题
-            $titles = ['每日登录抽奖机会', '分享活动抽奖机会', '邀请好友抽奖机会', '购物返利抽奖机会',
-                '签到奖励抽奖机会', '新手礼包抽奖机会', '会员专属抽奖机会', '节日活动抽奖机会',
-                '幸运大转盘抽奖机会', '限时活动抽奖机会'];
-            $chance->setTitle($faker->randomElement($titles) . '-' . $i);
-
-            // 使用Faker生成随机时间
-            $startTime = $faker->dateTimeBetween('-30 days', '+30 days');
-            $chance->setStartTime($startTime);
-            $chance->setExpireTime($faker->dateTimeBetween($startTime, '+60 days'));
-
-            // 随机状态
-            $status = $faker->randomElement($statusValues);
-            $chance->setStatus($status);
-
-            // 如果是已中奖或已发送状态，设置使用时间和奖品
-            if ($status === ChanceStatusEnum::WINNING || $status === ChanceStatusEnum::SENT) {
-                $useTime = $faker->dateTimeBetween('-30 days', 'now');
-                $chance->setUseTime($useTime);
-
-                // 已使用的设置奖品，避免null
-                $prizeIndex = $faker->numberBetween(0, count($prizes) - 2); // 排除最后一个null项
-                $prize = $prizes[$prizeIndex];
-                $chance->setPrize($prize);
-
-                // 添加上下文信息
-                $poolIndex = $faker->numberBetween(0, count($pools) - 1);
-                $pool = $pools[$poolIndex];
-                $chance->setPool($pool);
-
-                $chance->setPoolContext([
-                    'pool_id' => $pool->getId(),
-                    'pool_name' => $pool->getTitle(),
-                ]);
-
-                $chance->setProbabilityContext([
-                    'original_probability' => $faker->numberBetween(5, 50),
-                    'adjusted_probability' => $faker->numberBetween(5, 50),
-                ]);
-
-                // 如果状态是SENT，设置发送时间
-                if ($status === ChanceStatusEnum::SENT) {
-                    $chance->setSendTime($faker->dateTimeBetween($useTime, 'now'));
-                    $chance->setSendResult(['status' => 'success', 'time' => $faker->unixTime()]);
-                }
-            } elseif ($status === ChanceStatusEnum::INIT) {
-                // 未使用的可能有指定的奖池或奖品
-                if ($faker->boolean(25)) { // 25%的概率指定奖池
-                    $poolIndex = $faker->numberBetween(0, count($pools) - 1);
-                    $chance->setPool($pools[$poolIndex]);
-                }
-
-                if ($faker->boolean(20)) { // 20%的概率指定奖品
-                    $prizeIndex = $faker->numberBetween(0, count($prizes) - 2); // 排除null
-                    $chance->setPrize($prizes[$prizeIndex]);
-                }
-            }
-
-            // 活动关联
-            $activityIndex = $faker->numberBetween(0, count($activities) - 1);
-            $chance->setActivity($activities[$activityIndex]);
-
-            // 随机有效性
-            $chance->setValid($faker->boolean(90)); // 90%的概率有效
-
-            // 随机备注
-            if ($faker->boolean(25)) { // 25%的概率有备注
-                $remarks = ['系统自动生成', '推广活动获得', '管理员手动添加', '活动奖励', '限时福利',
-                    '邀请好友奖励', '社区活动奖励', '特殊节日福利', '会员专属权益', '忠诚度奖励'];
-                $chance->setRemark($faker->randomElement($remarks) . '-' . $i);
-            }
-
+        for ($i = 0; $i < 1000; ++$i) {
+            $chance = $this->createRandomChance($faker, $collections, $i);
             $manager->persist($chance);
 
-            // 每处理100条数据就刷新一次，避免内存问题
             if (($i % $batchSize) === 0) {
                 $manager->flush();
-                $manager->clear(); // 清理实体管理器
-
-                // 重新取得引用
-                $activities = [
-                    $this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_1, Activity::class),
-                    $this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_2, Activity::class)
-                ];
-
-                $pools = [
-                    $this->getReference(PoolFixtures::POOL_REFERENCE_1, Pool::class),
-                    $this->getReference(PoolFixtures::POOL_REFERENCE_2, Pool::class)
-                ];
-
-                $prizes = [
-                    $this->getReference(PrizeFixtures::PRIZE_REFERENCE_1, Prize::class),
-                    $this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class),
-                    $this->getReference(PrizeFixtures::PRIZE_REFERENCE_3, Prize::class),
-                    $this->getReference(PrizeFixtures::PRIZE_REFERENCE_4, Prize::class),
-                    null
-                ];
+                $manager->clear();
+                $collections = $this->getCollections(); // Refresh references
             }
         }
 
-        // 最后一次刷新
         $manager->flush();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getCollections(): array
+    {
+        return [
+            'activities' => [
+                $this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_1, Activity::class),
+                $this->getReference(ActivityFixtures::ACTIVITY_REFERENCE_2, Activity::class),
+            ],
+            'pools' => [
+                $this->getReference(PoolFixtures::POOL_REFERENCE_1, Pool::class),
+                $this->getReference(PoolFixtures::POOL_REFERENCE_2, Pool::class),
+            ],
+            'prizes' => [
+                $this->getReference(PrizeFixtures::PRIZE_REFERENCE_1, Prize::class),
+                $this->getReference(PrizeFixtures::PRIZE_REFERENCE_2, Prize::class),
+                $this->getReference(PrizeFixtures::PRIZE_REFERENCE_3, Prize::class),
+                $this->getReference(PrizeFixtures::PRIZE_REFERENCE_4, Prize::class),
+                null,
+            ],
+            'status_values' => [
+                ChanceStatusEnum::INIT,
+                ChanceStatusEnum::WINNING,
+                ChanceStatusEnum::SENT,
+                ChanceStatusEnum::EXPIRED,
+            ],
+            'titles' => [
+                '每日登录抽奖机会', '分享活动抽奖机会', '邀请好友抽奖机会', '购物返利抽奖机会',
+                '签到奖励抽奖机会', '新手礼包抽奖机会', '会员专属抽奖机会', '节日活动抽奖机会',
+                '幸运大转盘抽奖机会', '限时活动抽奖机会',
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $collections
+     */
+    private function createRandomChance(Generator $faker, array $collections, int $index): Chance
+    {
+        $statusValues = $collections['status_values'];
+        assert(is_array($statusValues));
+        $status = $faker->randomElement($statusValues);
+        assert($status instanceof ChanceStatusEnum);
+
+        $titles = $collections['titles'];
+        assert(is_array($titles));
+        $title = $faker->randomElement($titles);
+        assert(is_string($title));
+
+        $startDateTime = $faker->dateTimeBetween('-30 days', '+30 days');
+        $startTime = \DateTimeImmutable::createFromMutable($startDateTime);
+        $expireTime = \DateTimeImmutable::createFromMutable($faker->dateTimeBetween($startDateTime, '+60 days'));
+
+        $chance = $this->createChance(
+            $title . '-' . $index,
+            $startTime,
+            $expireTime,
+            $status
+        );
+
+        $this->configureChanceByStatus($chance, $status, $faker, $collections);
+
+        $activities = $collections['activities'];
+        assert(is_array($activities));
+        $activity = $faker->randomElement($activities);
+        assert($activity instanceof Activity);
+        $chance->setActivity($activity);
+
+        $chance->setValid($faker->boolean(90));
+        $this->addOptionalRemark($chance, $faker, $index);
+
+        return $chance;
+    }
+
+    /**
+     * @param array<string, mixed> $collections
+     */
+    private function configureChanceByStatus(Chance $chance, ChanceStatusEnum $status, Generator $faker, array $collections): void
+    {
+        if (ChanceStatusEnum::WINNING === $status || ChanceStatusEnum::SENT === $status) {
+            $this->configureUsedChance($chance, $status, $faker, $collections);
+        } elseif (ChanceStatusEnum::INIT === $status) {
+            $this->configureInitChance($chance, $faker, $collections);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $collections
+     */
+    private function configureUsedChance(Chance $chance, ChanceStatusEnum $status, Generator $faker, array $collections): void
+    {
+        $useDateTime = $faker->dateTimeBetween('-30 days', 'now');
+        $useTime = \DateTimeImmutable::createFromMutable($useDateTime);
+        $chance->setUseTime($useTime);
+
+        $prizes = $collections['prizes'];
+        assert(is_array($prizes));
+        $prizeIndex = $faker->numberBetween(0, count($prizes) - 2);
+        $prize = $prizes[$prizeIndex];
+        assert($prize instanceof Prize || null === $prize);
+        $chance->setPrize($prize);
+
+        $pools = $collections['pools'];
+        assert(is_array($pools));
+        $pool = $faker->randomElement($pools);
+        assert($pool instanceof Pool);
+        $chance->setPool($pool);
+        $chance->setPoolContext(['pool_id' => $pool->getId(), 'pool_name' => $pool->getTitle()]);
+        $chance->setProbabilityContext([[
+            'original_probability' => $faker->numberBetween(5, 50),
+            'adjusted_probability' => $faker->numberBetween(5, 50),
+        ]]);
+
+        if (ChanceStatusEnum::SENT === $status) {
+            $chance->setSendTime(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween($useDateTime, 'now')));
+            $chance->setSendResult(['status' => 'success', 'time' => $faker->unixTime()]);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $collections
+     */
+    private function configureInitChance(Chance $chance, Generator $faker, array $collections): void
+    {
+        if ($faker->boolean(25)) {
+            $pools = $collections['pools'];
+            assert(is_array($pools));
+            $pool = $faker->randomElement($pools);
+            assert($pool instanceof Pool);
+            $chance->setPool($pool);
+        }
+
+        if ($faker->boolean(20)) {
+            $prizes = $collections['prizes'];
+            assert(is_array($prizes));
+            $prizeIndex = $faker->numberBetween(0, count($prizes) - 2);
+            $prize = $prizes[$prizeIndex];
+            assert($prize instanceof Prize || null === $prize);
+            $chance->setPrize($prize);
+        }
+    }
+
+    private function addOptionalRemark(Chance $chance, Generator $faker, int $index): void
+    {
+        if ($faker->boolean(25)) {
+            $remarks = [
+                '系统自动生成', '推广活动获得', '管理员手动添加', '活动奖励', '限时福利',
+                '邀请好友奖励', '社区活动奖励', '特殊节日福利', '会员专属权益', '忠诚度奖励',
+            ];
+            $remark = $faker->randomElement($remarks);
+            assert(is_string($remark));
+            $chance->setRemark($remark . '-' . $index);
+        }
     }
 
     public function getDependencies(): array

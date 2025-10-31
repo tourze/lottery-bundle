@@ -3,10 +3,12 @@
 namespace LotteryBundle\Procedure;
 
 use Carbon\CarbonImmutable;
+use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Service\LotteryService;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -49,12 +51,12 @@ class ServerSendLotteryChance extends LockableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if ($activity === null) {
+        if (null === $activity) {
             throw new ApiException('找不到抽奖活动');
         }
 
         $user = $this->userLoader->loadUserByIdentifier($this->userIdentity);
-        if ($user === null) {
+        if (null === $user) {
             throw new ApiException('找不到用户信息');
         }
 
@@ -62,11 +64,11 @@ class ServerSendLotteryChance extends LockableProcedure
         $chance->setTitle($this->title);
         $chance->setActivity($activity);
         $chance->setValid(true);
-        if ($this->startTime !== '') {
+        if ('' !== $this->startTime) {
             $chance->setStartTime(CarbonImmutable::parse($this->startTime));
         }
 
-        if ($this->expireTime !== '') {
+        if ('' !== $this->expireTime) {
             $chance->setExpireTime(CarbonImmutable::parse($this->expireTime));
         }
 

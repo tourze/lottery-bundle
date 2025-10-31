@@ -7,45 +7,67 @@ use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Consignee;
 use LotteryBundle\Entity\Pool;
+use LotteryBundle\Entity\PoolAttribute;
+use LotteryBundle\Entity\Stock;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
 use Tourze\EasyAdminMenuBundle\Service\MenuProviderInterface;
 
 /**
  * 抽奖活动菜单服务
  */
-class AdminMenu implements MenuProviderInterface
+readonly class AdminMenu implements MenuProviderInterface
 {
-    public function __construct(private readonly LinkGeneratorInterface $linkGenerator)
+    public function __construct(private LinkGeneratorInterface $linkGenerator)
     {
     }
 
     public function __invoke(ItemInterface $item): void
     {
-        if ($item->getChild('抽奖活动') === null) {
+        if (null === $item->getChild('抽奖活动')) {
             $item->addChild('抽奖活动')
-                ->setAttribute('icon', 'fas fa-gift');
+                ->setAttribute('icon', 'fas fa-gift')
+            ;
         }
 
         $lotteryMenu = $item->getChild('抽奖活动');
+        if (null === $lotteryMenu) {
+            return;
+        }
 
         // 活动管理菜单
         $lotteryMenu->addChild('活动管理')
             ->setUri($this->linkGenerator->getCurdListPage(Activity::class))
-            ->setAttribute('icon', 'fas fa-calendar-alt');
-            
+            ->setAttribute('icon', 'fas fa-calendar-alt')
+        ;
+
         // 奖池管理菜单（包含奖品管理）
         $lotteryMenu->addChild('奖池管理')
             ->setUri($this->linkGenerator->getCurdListPage(Pool::class))
-            ->setAttribute('icon', 'fas fa-box');
-            
+            ->setAttribute('icon', 'fas fa-box')
+        ;
+
         // 机会管理菜单
         $lotteryMenu->addChild('机会管理')
             ->setUri($this->linkGenerator->getCurdListPage(Chance::class))
-            ->setAttribute('icon', 'fas fa-dice');
-            
+            ->setAttribute('icon', 'fas fa-dice')
+        ;
+
         // 收货信息菜单
         $lotteryMenu->addChild('收货信息')
             ->setUri($this->linkGenerator->getCurdListPage(Consignee::class))
-            ->setAttribute('icon', 'fas fa-shipping-fast');
+            ->setAttribute('icon', 'fas fa-shipping-fast')
+        ;
+
+        // 库存管理菜单
+        $lotteryMenu->addChild('库存管理')
+            ->setUri($this->linkGenerator->getCurdListPage(Stock::class))
+            ->setAttribute('icon', 'fas fa-warehouse')
+        ;
+
+        // 奖池属性菜单
+        $lotteryMenu->addChild('奖池属性')
+            ->setUri($this->linkGenerator->getCurdListPage(PoolAttribute::class))
+            ->setAttribute('icon', 'fas fa-tags')
+        ;
     }
 }

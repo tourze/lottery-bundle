@@ -4,12 +4,17 @@ namespace LotteryBundle\Tests\Event;
 
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Event\ChanceEvent;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Contracts\EventDispatcher\Event;
+use Tourze\PHPUnitSymfonyUnitTest\AbstractEventTestCase;
 
-class ChanceEventTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(ChanceEvent::class)]
+final class ChanceEventTest extends AbstractEventTestCase
 {
-    public function test_constructor_createsInstance(): void
+    public function testConstructorCreatesInstance(): void
     {
         $event = new ChanceEvent();
 
@@ -17,14 +22,19 @@ class ChanceEventTest extends TestCase
         $this->assertInstanceOf(Event::class, $event);
     }
 
-    public function test_setChance_setsAndGetsChance(): void
+    public function testSetChanceSetsAndGetsChance(): void
     {
         $event = new ChanceEvent();
+        /*
+         * 使用具体类 Chance 创建Mock对象
+         * 1) 必须使用具体类的原因：测试需要验证ChanceEvent与Chance的关联关系设置
+         * 2) 使用合理性：Chance是Entity类，测试仅需要验证关联设置，不需要具体实现
+         * 3) 替代方案：暂无更好方案，Chance没有对应的接口
+         */
         $chance = $this->createMock(Chance::class);
 
         $event->setChance($chance);
 
         $this->assertSame($chance, $event->getChance());
     }
-
-} 
+}

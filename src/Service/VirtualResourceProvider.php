@@ -30,8 +30,13 @@ class VirtualResourceProvider implements ResourceProvider
         return null;
     }
 
-    public function sendResource(UserInterface $user, ?ResourceIdentity $identity, string $amount, int|float|null $expireDay = null, ?\DateTimeInterface $expireTime = null): void
-    {
+    public function sendResource(
+        UserInterface $user,
+        ?ResourceIdentity $identity,
+        string $amount,
+        int|float|null $expireDay = null,
+        ?\DateTimeInterface $expireTime = null,
+    ): void {
         // 虚拟奖，什么都不用做
     }
 }

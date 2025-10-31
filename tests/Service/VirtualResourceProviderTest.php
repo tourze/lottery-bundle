@@ -3,13 +3,18 @@
 namespace LotteryBundle\Tests\Service;
 
 use LotteryBundle\Service\VirtualResourceProvider;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Tourze\ResourceManageBundle\Service\ResourceProvider;
 
-class VirtualResourceProviderTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(VirtualResourceProvider::class)]
+final class VirtualResourceProviderTest extends TestCase
 {
-    public function test_constructor_createsInstance(): void
+    public function testConstructorCreatesInstance(): void
     {
         $provider = new VirtualResourceProvider();
 
@@ -17,41 +22,41 @@ class VirtualResourceProviderTest extends TestCase
         $this->assertInstanceOf(ResourceProvider::class, $provider);
     }
 
-    public function test_getCode_returnsCorrectValue(): void
+    public function testGetCodeReturnsCorrectValue(): void
     {
         $provider = new VirtualResourceProvider();
 
         $this->assertSame('virtual', $provider->getCode());
     }
 
-    public function test_getLabel_returnsCorrectValue(): void
+    public function testGetLabelReturnsCorrectValue(): void
     {
         $provider = new VirtualResourceProvider();
 
         $this->assertSame('虚拟', $provider->getLabel());
     }
 
-    public function test_getIdentities_returnsNull(): void
+    public function testGetIdentitiesReturnsNull(): void
     {
         $provider = new VirtualResourceProvider();
 
         $this->assertNull($provider->getIdentities());
     }
 
-    public function test_findIdentity_returnsNull(): void
+    public function testFindIdentityReturnsNull(): void
     {
         $provider = new VirtualResourceProvider();
 
         $this->assertNull($provider->findIdentity('test'));
     }
 
-    public function test_sendResource_doesNotThrow(): void
+    public function testSendResourceDoesNotThrow(): void
     {
         $provider = new VirtualResourceProvider();
         $user = $this->createMock(UserInterface::class);
 
+        // 此测试验证方法执行不抛出异常，无需额外断言
+        $this->expectNotToPerformAssertions();
         $provider->sendResource($user, null, '100');
-
-        $this->assertTrue(true); // 确保没有抛出异常
     }
-} 
+}

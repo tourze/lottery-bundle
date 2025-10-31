@@ -7,14 +7,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class LotteryAddressController extends AbstractController
+final class LotteryAddressController extends AbstractController
 {
     #[Route(path: '/h5/lottery/address', name: 'h5_lottery_address', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $chanceId = $request->query->get('chance_id');
-        
-        if (!$chanceId) {
+
+        if (null === $chanceId || '' === $chanceId) {
             throw $this->createNotFoundException('抽奖记录ID不能为空');
         }
 

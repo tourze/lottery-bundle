@@ -3,6 +3,7 @@
 namespace LotteryBundle\Procedure;
 
 use Carbon\CarbonImmutable;
+use LotteryBundle\Entity\Activity;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -37,14 +38,14 @@ class GetLotteryDetail extends CacheableProcedure
             'id' => $this->activityId,
             'valid' => true,
         ]);
-        if ($activity === null) {
+        if (null === $activity) {
             throw new ApiException('活动无效');
         }
 
         $result = $activity->retrievePlainArray();
         $result['validChanceCount'] = 0; // 当前有效的抽奖次数
 
-        if ($this->security->getUser() !== null) {
+        if (null !== $this->security->getUser()) {
             $c = $this->chanceRepository->createQueryBuilder('a')
                 ->select('COUNT(a.id)')
                 ->where('a.user = :user AND a.activity = :activity AND a.valid = true and a.expireTime > :now')
@@ -52,7 +53,8 @@ class GetLotteryDetail extends CacheableProcedure
                 ->setParameter('activity', $activity)
                 ->setParameter('now', CarbonImmutable::now())
                 ->getQuery()
-                ->getSingleScalarResult();
+                ->getSingleScalarResult()
+            ;
             $result['validChanceCount'] = intval($c);
         }
 
@@ -61,8 +63,14 @@ class GetLotteryDetail extends CacheableProcedure
 
     public function getCacheKey(JsonRpcRequest $request): string
     {
-        $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser() !== null) {
+        $params = $request->getParams();
+        if (null === $params) {
+            $key = $this::class . '-no-params';
+        } else {
+            $key = $this->buildParamCacheKey($params);
+        }
+
+        if (null !== $this->security->getUser()) {
             $key .= '-' . $this->security->getUser()->getUserIdentifier();
         }
 
@@ -74,8 +82,11 @@ class GetLotteryDetail extends CacheableProcedure
         return 60 * 10;
     }
 
+    /**
+     * @return iterable<string>
+     */
     public function getCacheTags(JsonRpcRequest $request): iterable
     {
-        yield null;
+        yield 'lottery-detail';
     }
 }

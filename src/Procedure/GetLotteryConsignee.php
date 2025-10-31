@@ -2,6 +2,7 @@
 
 namespace LotteryBundle\Procedure;
 
+use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Consignee;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -38,17 +39,26 @@ class GetLotteryConsignee extends CacheableProcedure
             'id' => $this->chanceId,
             'user' => $this->security->getUser(),
         ]);
-        if ($chance === null) {
+        if (null === $chance) {
             throw new ApiException('抽奖信息错误');
         }
 
-        return $this->normalizer->normalize($chance->getConsignee(), 'array', ['groups' => 'restful_read']) ?? [];
+        $result = $this->normalizer->normalize($chance->getConsignee(), 'array', ['groups' => 'restful_read']);
+
+        /** @var array<string, mixed> */
+        return is_array($result) ? $result : [];
     }
 
     public function getCacheKey(JsonRpcRequest $request): string
     {
-        $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser() !== null) {
+        $params = $request->getParams();
+        if (null === $params) {
+            $key = $this::class . '-no-params';
+        } else {
+            $key = $this->buildParamCacheKey($params);
+        }
+
+        if (null !== $this->security->getUser()) {
             $key .= '-' . $this->security->getUser()->getUserIdentifier();
         }
 

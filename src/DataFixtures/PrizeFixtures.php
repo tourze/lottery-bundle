@@ -7,10 +7,13 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use LotteryBundle\Entity\Pool;
 use LotteryBundle\Entity\Prize;
+use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
  * 奖品数据填充
  */
+#[When(env: 'test')]
+#[When(env: 'dev')]
 class PrizeFixtures extends Fixture implements DependentFixtureInterface
 {
     // 使用常量定义引用名称
@@ -29,7 +32,9 @@ class PrizeFixtures extends Fixture implements DependentFixtureInterface
         $prize1->setQuantity(10);
         $prize1->setValue('1000.00');
         $prize1->setProbability(10);
-        $prize1->setPicture('https://example.com/images/prize1.jpg');
+        $prize1->setPicture(
+            'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop&crop=center'
+        );
         $prize1->setNeedConsignee(true);
         $prize1->setValid(true);
         $prize1->setSortNumber(100);
@@ -45,7 +50,9 @@ class PrizeFixtures extends Fixture implements DependentFixtureInterface
         $prize2->setQuantity(20);
         $prize2->setValue('500.00');
         $prize2->setProbability(20);
-        $prize2->setPicture('https://example.com/images/prize2.jpg');
+        $prize2->setPicture(
+            'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&h=300&fit=crop&crop=center'
+        );
         $prize2->setNeedConsignee(true);
         $prize2->setValid(true);
         $prize2->setSortNumber(90);
@@ -62,7 +69,9 @@ class PrizeFixtures extends Fixture implements DependentFixtureInterface
         $prize3->setQuantity(50);
         $prize3->setValue('100.00');
         $prize3->setProbability(30);
-        $prize3->setPicture('https://example.com/images/prize3.jpg');
+        $prize3->setPicture(
+            'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop&crop=center'
+        );
         $prize3->setNeedConsignee(false);
         $prize3->setValid(true);
         $prize3->setSortNumber(80);
@@ -78,7 +87,9 @@ class PrizeFixtures extends Fixture implements DependentFixtureInterface
         $prize4->setQuantity(1000);
         $prize4->setValue('0.00');
         $prize4->setProbability(40);
-        $prize4->setPicture('https://example.com/images/prize4.jpg');
+        $prize4->setPicture(
+            'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400&h=300&fit=crop&crop=center'
+        );
         $prize4->setNeedConsignee(false);
         $prize4->setIsDefault(true);
         $prize4->setValid(true);

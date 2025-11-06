@@ -140,7 +140,7 @@ class JoinLottery extends LockableProcedure
 
         $event = new UserJoinSuccessEvent();
         $currentUser = $this->security->getUser();
-        if ($currentUser === null) {
+        if (null === $currentUser) {
             throw new ApiException('用户未认证');
         }
         $event->setSender($currentUser);

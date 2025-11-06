@@ -56,6 +56,7 @@ class GetLotteryPrizeList extends CacheableProcedure
         if (null === $activity) {
             throw new ApiException('活动无效');
         }
+
         return $activity;
     }
 
@@ -76,6 +77,7 @@ class GetLotteryPrizeList extends CacheableProcedure
         if (null === $pool) {
             throw new ApiException('暂无奖品');
         }
+
         return $pool;
     }
 
@@ -92,6 +94,7 @@ class GetLotteryPrizeList extends CacheableProcedure
         if (is_array($pools) && count($pools) > 0) {
             return $pools[0];
         }
+
         return null;
     }
 
@@ -109,6 +112,7 @@ class GetLotteryPrizeList extends CacheableProcedure
             ->getQuery()
             ->getResult()
         ;
+
         return $result;
     }
 
@@ -125,6 +129,7 @@ class GetLotteryPrizeList extends CacheableProcedure
             }
             $list[] = $item->retrievePlainArray();
         }
+
         return $list;
     }
 

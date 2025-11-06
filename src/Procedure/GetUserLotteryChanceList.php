@@ -59,6 +59,7 @@ class GetUserLotteryChanceList extends BaseProcedure
         if (null === $activity) {
             throw new ApiException('活动无效');
         }
+
         return $activity;
     }
 
@@ -72,6 +73,7 @@ class GetUserLotteryChanceList extends BaseProcedure
             'user' => $user,
             'activity' => $activity,
         ], ['id' => 'desc']);
+
         return $result;
     }
 
@@ -93,6 +95,7 @@ class GetUserLotteryChanceList extends BaseProcedure
             ->getQuery()
             ->getResult()
         ;
+
         return $result;
     }
 
@@ -111,6 +114,7 @@ class GetUserLotteryChanceList extends BaseProcedure
             ->getQuery()
             ->getResult()
         ;
+
         return $result;
     }
 
@@ -127,6 +131,7 @@ class GetUserLotteryChanceList extends BaseProcedure
             }
             $list[] = $item->retrieveApiArray();
         }
+
         return $list;
     }
 

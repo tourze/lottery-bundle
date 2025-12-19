@@ -13,7 +13,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 #[WithMonologChannel(channel: 'lottery')]
-class SendPrizeHandler
+final class SendPrizeHandler
 {
     public function __construct(
         private readonly LoggerInterface $logger,

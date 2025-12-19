@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Procedure;
 
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Prize;
 use LotteryBundle\Event\DecidePoolEvent;
+use LotteryBundle\Param\GetLotteryPrizeListParam;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\PoolRepository;
 use LotteryBundle\Repository\PrizeRepository;
@@ -14,8 +17,9 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\DoctrineHelper\CacheHelper;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
@@ -25,9 +29,6 @@ use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 #[MethodDoc(summary: '获取抽奖奖品列表')]
 class GetLotteryPrizeList extends CacheableProcedure
 {
-    #[MethodParam(description: '活动ID')]
-    public string $activityId;
-
     public function __construct(
         private readonly ActivityRepository $activityRepository,
         private readonly PrizeRepository $prizeRepository,
@@ -37,20 +38,23 @@ class GetLotteryPrizeList extends CacheableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param GetLotteryPrizeListParam $param
+     */
+    public function execute(GetLotteryPrizeListParam|RpcParamInterface $param): ArrayResult
     {
-        $activity = $this->validateActivity();
-        $pool = $this->determinePool($activity);
+        $activity = $this->validateActivity($param);
+        $pool = $this->determinePool($activity, $param);
         $prizes = $this->fetchPrizes($pool);
         $list = $this->formatPrizeList($prizes);
 
-        return ['data' => $list];
+        return new ArrayResult(['data' => $list]);
     }
 
-    private function validateActivity(): Activity
+    private function validateActivity(GetLotteryPrizeListParam $param): Activity
     {
         $activity = $this->activityRepository->findOneBy([
-            'id' => $this->activityId,
+            'id' => $param->activityId,
             'valid' => true,
         ]);
         if (null === $activity) {
@@ -60,7 +64,7 @@ class GetLotteryPrizeList extends CacheableProcedure
         return $activity;
     }
 
-    private function determinePool(Activity $activity): mixed
+    private function determinePool(Activity $activity, GetLotteryPrizeListParam $param): mixed
     {
         $decidePoolEvent = new DecidePoolEvent();
         $decidePoolEvent->setActivity($activity);
@@ -72,7 +76,7 @@ class GetLotteryPrizeList extends CacheableProcedure
         $pool = $decidePoolEvent->getPool();
 
         if (null === $pool) {
-            $pool = $this->findFirstPoolForActivity();
+            $pool = $this->findFirstPoolForActivity($param);
         }
         if (null === $pool) {
             throw new ApiException('暂无奖品');
@@ -81,12 +85,12 @@ class GetLotteryPrizeList extends CacheableProcedure
         return $pool;
     }
 
-    private function findFirstPoolForActivity(): mixed
+    private function findFirstPoolForActivity(GetLotteryPrizeListParam $param): mixed
     {
         $pools = $this->poolRepository->createQueryBuilder('p')
             ->leftJoin('p.activities', 'a')
             ->where('a.id = :activityId')
-            ->setParameter('activityId', $this->activityId)
+            ->setParameter('activityId', $param->activityId)
             ->setMaxResults(1)
             ->getQuery()
             ->getResult()

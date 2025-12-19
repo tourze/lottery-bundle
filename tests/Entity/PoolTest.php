@@ -75,52 +75,25 @@ final class PoolTest extends AbstractEntityTestCase
     public function testPrizesAddAndRemove(): void
     {
         $pool = new Pool();
-        /*
-         * 使用具体类 Prize 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Pool与Prize的双向关联关系
-         * 2) 使用合理性：Prize是Entity类，测试需要模拟setPool/getPool方法
-         * 3) 替代方案：暂无更好方案，Prize没有对应的接口
-         */
-        $prize = $this->createMock(Prize::class);
-
-        // 模拟 Prize 的 setPool 方法
-        $prize->expects($this->exactly(2))
-            ->method('setPool')
-            ->willReturnCallback(function ($argument) use ($pool) {
-                $this->assertTrue($argument === $pool || null === $argument);
-            })
-        ;
+        $prize = new Prize();
+        $prize->setName('Test Prize');
 
         $pool->addPrize($prize);
 
         $this->assertTrue($pool->getPrizes()->contains($prize));
-
-        // 测试移除
-        $prize->expects($this->once())
-            ->method('getPool')
-            ->willReturn($pool)
-        ;
+        $this->assertSame($pool, $prize->getPool());
 
         $pool->removePrize($prize);
 
         $this->assertFalse($pool->getPrizes()->contains($prize));
+        $this->assertNull($prize->getPool());
     }
 
     public function testPrizesAddDuplicateDoesNotDuplicate(): void
     {
         $pool = new Pool();
-        /*
-         * 使用具体类 Prize 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Pool与Prize的集合去重逻辑
-         * 2) 使用合理性：Prize是Entity类，测试需要模拟setPool方法
-         * 3) 替代方案：暂无更好方案，Prize没有对应的接口
-         */
-        $prize = $this->createMock(Prize::class);
-
-        $prize->expects($this->once())
-            ->method('setPool')
-            ->with($pool)
-        ;
+        $prize = new Prize();
+        $prize->setName('Test Prize');
 
         $pool->addPrize($prize);
         $pool->addPrize($prize); // 添加相同的奖品
@@ -131,50 +104,25 @@ final class PoolTest extends AbstractEntityTestCase
     public function testActivitiesAddAndRemove(): void
     {
         $pool = new Pool();
-        /*
-         * 使用具体类 Activity 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Pool与Activity的多对多关联关系
-         * 2) 使用合理性：Activity是Entity类，测试需要模拟addPool/removePool方法
-         * 3) 替代方案：暂无更好方案，Activity没有对应的接口
-         */
-        $activity = $this->createMock(Activity::class);
-
-        // 模拟 Activity 的 addPool 方法
-        $activity->expects($this->once())
-            ->method('addPool')
-            ->with($pool)
-        ;
+        $activity = new Activity();
+        $activity->setTitle('Test Activity');
 
         $pool->addActivity($activity);
 
         $this->assertTrue($pool->getActivities()->contains($activity));
-
-        // 测试移除
-        $activity->expects($this->once())
-            ->method('removePool')
-            ->with($pool)
-        ;
+        $this->assertTrue($activity->getPools()->contains($pool));
 
         $pool->removeActivity($activity);
 
         $this->assertFalse($pool->getActivities()->contains($activity));
+        $this->assertFalse($activity->getPools()->contains($pool));
     }
 
     public function testActivitiesAddDuplicateDoesNotDuplicate(): void
     {
         $pool = new Pool();
-        /*
-         * 使用具体类 Activity 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Pool与Activity的集合去重逻辑
-         * 2) 使用合理性：Activity是Entity类，测试需要模拟addPool方法
-         * 3) 替代方案：暂无更好方案，Activity没有对应的接口
-         */
-        $activity = $this->createMock(Activity::class);
-
-        $activity->expects($this->once())
-            ->method('addPool')
-            ->with($pool)
-        ;
+        $activity = new Activity();
+        $activity->setTitle('Test Activity');
 
         $pool->addActivity($activity);
         $pool->addActivity($activity); // 添加相同的活动
@@ -185,52 +133,25 @@ final class PoolTest extends AbstractEntityTestCase
     public function testPoolAttributesAddAndRemove(): void
     {
         $pool = new Pool();
-        /*
-         * 使用具体类 PoolAttribute 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Pool与PoolAttribute的一对多关联
-         * 2) 使用合理性：PoolAttribute是Entity类，测试需要模拟setPool/getPool方法
-         * 3) 替代方案：暂无更好方案，PoolAttribute没有对应的接口
-         */
-        $poolAttribute = $this->createMock(PoolAttribute::class);
-
-        // 模拟 PoolAttribute 的 setPool 方法
-        $poolAttribute->expects($this->exactly(2))
-            ->method('setPool')
-            ->willReturnCallback(function ($argument) use ($pool) {
-                $this->assertTrue($argument === $pool || null === $argument);
-            })
-        ;
+        $poolAttribute = new PoolAttribute();
+        $poolAttribute->setName('Test Attribute');
 
         $pool->addPoolAttribute($poolAttribute);
 
         $this->assertTrue($pool->getPoolAttributes()->contains($poolAttribute));
-
-        // 测试移除
-        $poolAttribute->expects($this->once())
-            ->method('getPool')
-            ->willReturn($pool)
-        ;
+        $this->assertSame($pool, $poolAttribute->getPool());
 
         $pool->removePoolAttribute($poolAttribute);
 
         $this->assertFalse($pool->getPoolAttributes()->contains($poolAttribute));
+        $this->assertNull($poolAttribute->getPool());
     }
 
     public function testPoolAttributesAddDuplicateDoesNotDuplicate(): void
     {
         $pool = new Pool();
-        /*
-         * 使用具体类 PoolAttribute 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Pool与PoolAttribute的集合去重逻辑
-         * 2) 使用合理性：PoolAttribute是Entity类，测试需要模拟setPool方法
-         * 3) 替代方案：暂无更好方案，PoolAttribute没有对应的接口
-         */
-        $poolAttribute = $this->createMock(PoolAttribute::class);
-
-        $poolAttribute->expects($this->once())
-            ->method('setPool')
-            ->with($pool)
-        ;
+        $poolAttribute = new PoolAttribute();
+        $poolAttribute->setName('Test Attribute');
 
         $pool->addPoolAttribute($poolAttribute);
         $pool->addPoolAttribute($poolAttribute); // 添加相同的属性

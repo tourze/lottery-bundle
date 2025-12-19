@@ -5,7 +5,8 @@ namespace LotteryBundle\Tests\Procedure;
 use LotteryBundle\Procedure\GetLotteryDetail;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal
@@ -36,20 +37,36 @@ final class GetLotteryDetailTest extends AbstractProcedureTestCase
         $this->assertTrue($reflectionMethod->isPublic());
         $returnType = $reflectionMethod->getReturnType();
         $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals(ArrayResult::class, $returnType->getName());
     }
 
-    public function testHasRequiredProperties(): void
+    public function testGetCacheKeyMethodSignature(): void
     {
-        $reflectionClass = new \ReflectionClass(GetLotteryDetail::class);
+        $reflectionMethod = new \ReflectionMethod(GetLotteryDetail::class, 'getCacheKey');
 
-        $this->assertTrue($reflectionClass->hasProperty('activityId'));
+        $this->assertTrue($reflectionMethod->isPublic());
+        $returnType = $reflectionMethod->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('string', $returnType->getName());
+    }
 
-        $activityIdProperty = $reflectionClass->getProperty('activityId');
-        $this->assertTrue($activityIdProperty->isPublic());
-        $activityIdType = $activityIdProperty->getType();
-        if ($activityIdType instanceof \ReflectionNamedType) {
-            $this->assertEquals('string', $activityIdType->getName());
-        }
+    public function testGetCacheDurationMethodSignature(): void
+    {
+        $reflectionMethod = new \ReflectionMethod(GetLotteryDetail::class, 'getCacheDuration');
+
+        $this->assertTrue($reflectionMethod->isPublic());
+        $returnType = $reflectionMethod->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('int', $returnType->getName());
+    }
+
+    public function testGetCacheTagsMethodSignature(): void
+    {
+        $reflectionMethod = new \ReflectionMethod(GetLotteryDetail::class, 'getCacheTags');
+
+        $this->assertTrue($reflectionMethod->isPublic());
+        $returnType = $reflectionMethod->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('iterable', $returnType->getName());
     }
 }

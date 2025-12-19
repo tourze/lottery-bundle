@@ -12,7 +12,7 @@ use LotteryBundle\Entity\Prize;
 use LotteryBundle\Entity\Stock;
 use LotteryBundle\Enum\ChanceStatusEnum;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
@@ -144,13 +144,8 @@ final class ChanceTest extends AbstractEntityTestCase
     public function testActivitySetterAndGetter(): void
     {
         $chance = new Chance();
-        /*
-         * 使用具体类 Activity 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Chance与Activity的关联关系设置
-         * 2) 使用合理性：Activity是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Activity没有对应的接口
-         */
-        $activity = $this->createMock(Activity::class);
+        $activity = new Activity();
+        $activity->setTitle('Test Activity');
 
         $chance->setActivity($activity);
 
@@ -160,7 +155,7 @@ final class ChanceTest extends AbstractEntityTestCase
     public function testUserSetterAndGetter(): void
     {
         $chance = new Chance();
-        $user = $this->createMock(UserInterface::class);
+        $user = new InMemoryUser('test_user_' . uniqid(), 'password');
 
         $chance->setUser($user);
 
@@ -170,13 +165,8 @@ final class ChanceTest extends AbstractEntityTestCase
     public function testPoolSetterAndGetter(): void
     {
         $chance = new Chance();
-        /*
-         * 使用具体类 Pool 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Chance与Pool的关联关系设置
-         * 2) 使用合理性：Pool是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
-         */
-        $pool = $this->createMock(Pool::class);
+        $pool = new Pool();
+        $pool->setTitle('Test Pool');
 
         $chance->setPool($pool);
 
@@ -186,13 +176,8 @@ final class ChanceTest extends AbstractEntityTestCase
     public function testPrizeSetterAndGetter(): void
     {
         $chance = new Chance();
-        /*
-         * 使用具体类 Prize 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Chance与Prize的关联关系设置
-         * 2) 使用合理性：Prize是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Prize没有对应的接口
-         */
-        $prize = $this->createMock(Prize::class);
+        $prize = new Prize();
+        $prize->setName('Test Prize');
 
         $chance->setPrize($prize);
 
@@ -202,13 +187,8 @@ final class ChanceTest extends AbstractEntityTestCase
     public function testConsigneeSetterAndGetter(): void
     {
         $chance = new Chance();
-        /*
-         * 使用具体类 Consignee 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Chance与Consignee的关联关系设置
-         * 2) 使用合理性：Consignee是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Consignee没有对应的接口
-         */
-        $consignee = $this->createMock(Consignee::class);
+        $consignee = new Consignee();
+        $consignee->setRealName('Test Name');
 
         $chance->setConsignee($consignee);
 
@@ -218,52 +198,25 @@ final class ChanceTest extends AbstractEntityTestCase
     public function testStocksAddAndRemove(): void
     {
         $chance = new Chance();
-        /*
-         * 使用具体类 Stock 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Chance与Stock的集合关联关系
-         * 2) 使用合理性：Stock是Entity类，测试需要模拟setChance/getChance方法
-         * 3) 替代方案：暂无更好方案，Stock没有对应的接口
-         */
-        $stock = $this->createMock(Stock::class);
-
-        // 模拟 Stock 的 setChance 方法
-        $stock->expects($this->exactly(2))
-            ->method('setChance')
-            ->willReturnCallback(function ($argument) use ($chance) {
-                $this->assertTrue($argument === $chance || null === $argument);
-            })
-        ;
+        $stock = new Stock();
+        $stock->setSn('TEST-STOCK-001');
 
         $chance->addStock($stock);
 
         $this->assertTrue($chance->getStocks()->contains($stock));
-
-        // 测试移除
-        $stock->expects($this->once())
-            ->method('getChance')
-            ->willReturn($chance)
-        ;
+        $this->assertSame($chance, $stock->getChance());
 
         $chance->removeStock($stock);
 
         $this->assertFalse($chance->getStocks()->contains($stock));
+        $this->assertNull($stock->getChance());
     }
 
     public function testStocksAddDuplicateDoesNotDuplicate(): void
     {
         $chance = new Chance();
-        /*
-         * 使用具体类 Stock 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Chance与Stock的集合去重逻辑
-         * 2) 使用合理性：Stock是Entity类，测试需要模拟setChance方法
-         * 3) 替代方案：暂无更好方案，Stock没有对应的接口
-         */
-        $stock = $this->createMock(Stock::class);
-
-        $stock->expects($this->once())
-            ->method('setChance')
-            ->with($chance)
-        ;
+        $stock = new Stock();
+        $stock->setSn('TEST-STOCK-002');
 
         $chance->addStock($stock);
         $chance->addStock($stock); // 添加相同的库存
@@ -317,7 +270,7 @@ final class ChanceTest extends AbstractEntityTestCase
     public function testReviewUserSetterAndGetter(): void
     {
         $chance = new Chance();
-        $reviewUser = $this->createMock(UserInterface::class);
+        $reviewUser = new InMemoryUser('review_user_' . uniqid(), 'password');
 
         $chance->setReviewUser($reviewUser);
 

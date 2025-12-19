@@ -4,14 +4,16 @@ namespace LotteryBundle\Procedure;
 
 use Carbon\CarbonImmutable;
 use LotteryBundle\Entity\Activity;
+use LotteryBundle\Param\GetLotteryDetailParam;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
@@ -22,9 +24,6 @@ use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetLotteryDetail extends CacheableProcedure
 {
-    #[MethodParam(description: '活动ID')]
-    public string $activityId;
-
     public function __construct(
         private readonly ActivityRepository $activityRepository,
         private readonly ChanceRepository $chanceRepository,
@@ -32,10 +31,13 @@ class GetLotteryDetail extends CacheableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param GetLotteryDetailParam $param
+     */
+    public function execute(GetLotteryDetailParam|RpcParamInterface $param): ArrayResult
     {
         $activity = $this->activityRepository->findOneBy([
-            'id' => $this->activityId,
+            'id' => $param->activityId,
             'valid' => true,
         ]);
         if (null === $activity) {
@@ -58,7 +60,7 @@ class GetLotteryDetail extends CacheableProcedure
             $result['validChanceCount'] = intval($c);
         }
 
-        return $result;
+        return new ArrayResult($result);
     }
 
     public function getCacheKey(JsonRpcRequest $request): string

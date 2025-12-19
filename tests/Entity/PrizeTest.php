@@ -246,13 +246,8 @@ final class PrizeTest extends AbstractEntityTestCase
     public function testSetPoolSetsAndGetsValue(): void
     {
         $prize = new Prize();
-        /*
-         * 使用具体类 Pool 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Prize与Pool的关联关系设置
-         * 2) 使用合理性：Pool是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
-         */
-        $pool = $this->createMock(Pool::class);
+        $pool = new Pool();
+        $pool->setTitle('Test Pool');
 
         $prize->setPool($pool);
         $this->assertSame($pool, $prize->getPool());
@@ -261,36 +256,19 @@ final class PrizeTest extends AbstractEntityTestCase
     public function testAddStockAddsStockToCollection(): void
     {
         $prize = new Prize();
-        /*
-         * 使用具体类 Stock 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Prize与Stock的集合关联关系
-         * 2) 使用合理性：Stock是Entity类，测试需要模拟setPrize方法
-         * 3) 替代方案：暂无更好方案，Stock没有对应的接口
-         */
-        $stock = $this->createMock(Stock::class);
-        $stock->expects($this->once())
-            ->method('setPrize')
-            ->with($prize)
-        ;
+        $stock = new Stock();
+        $stock->setSn('TEST-STOCK-001');
 
         $prize->addStock($stock);
         $this->assertTrue($prize->getStocks()->contains($stock));
+        $this->assertSame($prize, $stock->getPrize());
     }
 
     public function testAddStockDoesNotAddDuplicateStock(): void
     {
         $prize = new Prize();
-        /*
-         * 使用具体类 Stock 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Prize与Stock的集合去重逻辑
-         * 2) 使用合理性：Stock是Entity类，测试需要模拟setPrize方法
-         * 3) 替代方案：暂无更好方案，Stock没有对应的接口
-         */
-        $stock = $this->createMock(Stock::class);
-        $stock->expects($this->once())
-            ->method('setPrize')
-            ->with($prize)
-        ;
+        $stock = new Stock();
+        $stock->setSn('TEST-STOCK-002');
 
         $prize->addStock($stock);
         $prize->addStock($stock); // 尝试添加重复的stock
@@ -301,31 +279,16 @@ final class PrizeTest extends AbstractEntityTestCase
     public function testRemoveStockRemovesStockFromCollection(): void
     {
         $prize = new Prize();
-        /*
-         * 使用具体类 Stock 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Prize与Stock的集合移除逻辑
-         * 2) 使用合理性：Stock是Entity类，测试需要模拟setPrize/getPrize方法
-         * 3) 替代方案：暂无更好方案，Stock没有对应的接口
-         */
-        $stock = $this->createMock(Stock::class);
+        $stock = new Stock();
+        $stock->setSn('TEST-STOCK-003');
 
         // 先添加stock
-        $stock->expects($this->exactly(2))
-            ->method('setPrize')
-            ->willReturnCallback(function ($argument) use ($prize) {
-                $this->assertTrue($argument === $prize || null === $argument);
-            })
-        ;
         $prize->addStock($stock);
-
-        // 设置removeStock时的期望
-        $stock->expects($this->once())
-            ->method('getPrize')
-            ->willReturn($prize)
-        ;
+        $this->assertSame($prize, $stock->getPrize());
 
         $prize->removeStock($stock);
         $this->assertFalse($prize->getStocks()->contains($stock));
+        $this->assertNull($stock->getPrize());
     }
 
     public function testSetSortNumberSetsAndGetsValue(): void
@@ -371,17 +334,8 @@ final class PrizeTest extends AbstractEntityTestCase
         $idProperty->setAccessible(true);
         $idProperty->setValue($prize, 1);
 
-        /*
-         * 使用具体类 Pool 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Prize的__toString方法中使用Pool的标题
-         * 2) 使用合理性：Pool是Entity类，测试需要模拟getTitle方法返回值
-         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
-         */
-        $pool = $this->createMock(Pool::class);
-        $pool->expects($this->once())
-            ->method('getTitle')
-            ->willReturn('测试奖池')
-        ;
+        $pool = new Pool();
+        $pool->setTitle('测试奖池');
 
         $prize->setName('测试奖品');
         $prize->setPool($pool);
@@ -500,17 +454,8 @@ final class PrizeTest extends AbstractEntityTestCase
         $idProperty->setAccessible(true);
         $idProperty->setValue($prize, 1);
 
-        /*
-         * 使用具体类 Pool 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Prize的Admin数组中包含Pool标题
-         * 2) 使用合理性：Pool是Entity类，测试需要模拟getTitle方法返回值
-         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
-         */
-        $pool = $this->createMock(Pool::class);
-        $pool->expects($this->once())
-            ->method('getTitle')
-            ->willReturn('测试奖池')
-        ;
+        $pool = new Pool();
+        $pool->setTitle('测试奖池');
 
         $createTime = new \DateTimeImmutable('2025-01-01 12:00:00');
 

@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 /**
  * 全部抽奖记录的额外处理
  */
-class AllLotteryChanceEvent extends Event
+final class AllLotteryChanceEvent extends Event
 {
     private QueryBuilder $queryBuilder;
 

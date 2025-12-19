@@ -10,7 +10,7 @@ use Tourze\UserEventBundle\Event\UserInteractionEvent;
 /**
  * 每抽一次，就触发一次这个事件
  */
-class UserJoinSuccessEvent extends UserInteractionEvent implements UserInteractionContext
+final class UserJoinSuccessEvent extends UserInteractionEvent implements UserInteractionContext
 {
     private Chance $chance;
 

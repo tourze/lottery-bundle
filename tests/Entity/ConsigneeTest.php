@@ -66,13 +66,8 @@ final class ConsigneeTest extends AbstractEntityTestCase
     public function testSetChanceSetsAndGetsValue(): void
     {
         $consignee = new Consignee();
-        /*
-         * 使用具体类 Chance 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Consignee与Chance的关联关系设置
-         * 2) 使用合理性：Chance是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Chance没有对应的接口
-         */
-        $chance = $this->createMock(Chance::class);
+        $chance = new Chance();
+        $chance->setTitle('Test Chance');
 
         $consignee->setChance($chance);
         $this->assertSame($chance, $consignee->getChance());

@@ -6,7 +6,7 @@ use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Prize;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class DecidePrizeProbabilityEvent extends Event
+final class DecidePrizeProbabilityEvent extends Event
 {
     private Chance $chance;
 

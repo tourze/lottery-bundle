@@ -23,7 +23,7 @@ use Tourze\ResourceManageBundle\Service\ResourceManager;
 
 #[Autoconfigure(public: true)]
 #[WithMonologChannel(channel: 'lottery')]
-class PrizeService
+final class PrizeService
 {
     public function __construct(
         private readonly ResourceManager $resourceManager,

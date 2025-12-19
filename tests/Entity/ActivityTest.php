@@ -103,22 +103,13 @@ final class ActivityTest extends AbstractEntityTestCase
      */
     public function testAddAndRemoveChance(): void
     {
-        /*
-         * 使用具体类 Chance 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Activity与Chance的双向关联关系
-         * 2) 使用合理性：Chance是Entity类，测试需要模拟setActivity方法调用
-         * 3) 替代方案：暂无更好方案，Chance没有对应的接口
-         */
-        $chance = $this->createMock(Chance::class);
-
-        $chance->expects($this->once())
-            ->method('setActivity')
-            ->with($this->activity)
-        ;
+        $chance = new Chance();
+        $chance->setTitle('Test Chance');
 
         $this->activity->addChance($chance);
         $this->assertCount(1, $this->activity->getChances());
         $this->assertTrue($this->activity->getChances()->contains($chance));
+        $this->assertSame($this->activity, $chance->getActivity());
 
         $this->activity->removeChance($chance);
         $this->assertCount(0, $this->activity->getChances());
@@ -130,31 +121,18 @@ final class ActivityTest extends AbstractEntityTestCase
      */
     public function testAddAndRemovePool(): void
     {
-        /*
-         * 使用具体类 Pool 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Activity与Pool的多对多关联关系
-         * 2) 使用合理性：Pool是Entity类，测试需要模拟addActivity/removeActivity方法
-         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
-         */
-        $pool = $this->createMock(Pool::class);
-
-        $pool->expects($this->once())
-            ->method('addActivity')
-            ->with($this->activity)
-        ;
+        $pool = new Pool();
+        $pool->setTitle('Test Pool');
 
         $this->activity->addPool($pool);
         $this->assertCount(1, $this->activity->getPools());
         $this->assertTrue($this->activity->getPools()->contains($pool));
-
-        $pool->expects($this->once())
-            ->method('removeActivity')
-            ->with($this->activity)
-        ;
+        $this->assertTrue($pool->getActivities()->contains($this->activity));
 
         $this->activity->removePool($pool);
         $this->assertCount(0, $this->activity->getPools());
         $this->assertFalse($this->activity->getPools()->contains($pool));
+        $this->assertFalse($pool->getActivities()->contains($this->activity));
     }
 
     /**

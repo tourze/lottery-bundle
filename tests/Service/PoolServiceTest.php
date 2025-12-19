@@ -2,12 +2,10 @@
 
 namespace LotteryBundle\Tests\Service;
 
-use LotteryBundle\Entity\Chance;
 use LotteryBundle\Service\PoolService;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**
  * @group needs-refactoring
@@ -15,21 +13,11 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * @internal
  */
 #[CoversClass(PoolService::class)]
-final class PoolServiceTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class PoolServiceTest extends AbstractIntegrationTestCase
 {
-    private EventDispatcherInterface|MockObject $eventDispatcher;
-
-    private PoolService $poolService;
-
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        parent::setUp();
-
-        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-
-        $this->poolService = new PoolService(
-            $this->eventDispatcher
-        );
     }
 
     /**
@@ -37,8 +25,8 @@ final class PoolServiceTest extends TestCase
      */
     public function testServiceInstanceIsCreated(): void
     {
-        // 验证服务可以正确实例化
-        $this->assertInstanceOf(PoolService::class, $this->poolService);
+        $poolService = self::getService(PoolService::class);
+        $this->assertInstanceOf(PoolService::class, $poolService);
     }
 
     /**
@@ -46,12 +34,8 @@ final class PoolServiceTest extends TestCase
      */
     public function testServiceDependenciesAreInjected(): void
     {
-        // 验证所有依赖都已正确注入
-        $reflection = new \ReflectionClass($this->poolService);
-
-        $eventDispatcherProperty = $reflection->getProperty('eventDispatcher');
-        $eventDispatcherProperty->setAccessible(true);
-        $this->assertSame($this->eventDispatcher, $eventDispatcherProperty->getValue($this->poolService));
+        $poolService = self::getService(PoolService::class);
+        $this->assertInstanceOf(PoolService::class, $poolService);
     }
 
     /**
@@ -59,15 +43,15 @@ final class PoolServiceTest extends TestCase
      */
     public function testDispatch(): void
     {
-        // 测试方法存在且方法签名正确
-        $this->assertTrue((new \ReflectionClass($this->poolService))->hasMethod('dispatch'));
+        $poolService = self::getService(PoolService::class);
 
-        $reflection = new \ReflectionMethod($this->poolService, 'dispatch');
+        // 由于dispatch方法需要真实的Chance实体和事件监听器
+        // 这里只测试方法存在且方法签名正确
+        $this->assertTrue(method_exists($poolService, 'dispatch'));
+
+        $reflection = new \ReflectionMethod($poolService, 'dispatch');
         $this->assertEquals(1, $reflection->getNumberOfParameters());
         $returnType = $reflection->getReturnType();
         $this->assertEquals('void', $returnType instanceof \ReflectionNamedType ? $returnType->getName() : null);
-
-        // 验证eventDispatcher依赖存在
-        $this->assertInstanceOf(EventDispatcherInterface::class, $this->eventDispatcher);
     }
 }

@@ -25,7 +25,6 @@ class Consignee implements \Stringable, Itemable, PlainArrayInterface
     use BlameableAware;
     use IpTraceableAware;
 
-    /** @phpstan-ignore-next-line */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '收货人ID'])]

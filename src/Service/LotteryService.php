@@ -20,7 +20,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[Autoconfigure(lazy: true, public: true)]
 #[WithMonologChannel(channel: 'lottery')]
-class LotteryService
+final class LotteryService
 {
     public const LOTTERY_PRIZE_REDIS_COUNT = 'lottery_prize_redis_count_';
 

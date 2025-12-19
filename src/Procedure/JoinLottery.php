@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Event\UserJoinSuccessEvent;
+use LotteryBundle\Param\JoinLotteryParam;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
 use LotteryBundle\Service\LotteryService;
@@ -18,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
@@ -34,12 +36,6 @@ use Tourze\UserIDBundle\Model\SystemUser;
 #[WithMonologChannel(channel: 'lottery')]
 class JoinLottery extends LockableProcedure
 {
-    #[MethodParam(description: '活动ID')]
-    public int $activityId;
-
-    #[MethodParam(description: '连续抽取次数')]
-    public int $count = 1;
-
     public function __construct(
         private readonly ActivityRepository $activityRepository,
         private readonly ChanceRepository $chanceRepository,
@@ -52,10 +48,13 @@ class JoinLottery extends LockableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param JoinLotteryParam $param
+     */
+    public function execute(JoinLotteryParam|RpcParamInterface $param): ArrayResult
     {
-        $activity = $this->validateActivity();
-        $chances = $this->getUserChances($activity);
+        $activity = $this->validateActivity($param);
+        $chances = $this->getUserChances($activity, $param);
 
         $result = [];
         $i = 1;
@@ -65,18 +64,18 @@ class JoinLottery extends LockableProcedure
             $result[] = $chance->retrievePlainArray();
 
             ++$i;
-            if ($i > $this->count) {
+            if ($i > $param->count) {
                 break;
             }
         }
 
-        return ['data' => $result];
+        return new ArrayResult(['data' => $result]);
     }
 
-    private function validateActivity(): Activity
+    private function validateActivity(JoinLotteryParam $param): Activity
     {
         $activity = $this->activityRepository->findOneBy([
-            'id' => $this->activityId,
+            'id' => $param->activityId,
             'valid' => true,
         ]);
         if (null === $activity) {
@@ -93,14 +92,14 @@ class JoinLottery extends LockableProcedure
     /**
      * @return array<Chance>
      */
-    private function getUserChances(Activity $activity): array
+    private function getUserChances(Activity $activity, JoinLotteryParam $param): array
     {
         /** @var Chance[] $chances */
         $chances = $this->chanceRepository->createQueryBuilder('a')
             ->where('a.user=:user AND a.activity=:activity AND a.valid=true')
             ->setParameter('user', $this->security->getUser())
             ->setParameter('activity', $activity)
-            ->setMaxResults($this->count)
+            ->setMaxResults($param->count)
             ->getQuery()
             ->getResult()
         ;

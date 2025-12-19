@@ -4,17 +4,18 @@ namespace LotteryBundle\Procedure;
 
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Consignee;
+use LotteryBundle\Param\GetLotteryConsigneeParam;
 use LotteryBundle\Repository\ChanceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Tourze\DoctrineHelper\CacheHelper;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 
 #[MethodTag(name: '抽奖模块')]
@@ -23,30 +24,31 @@ use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetLotteryConsignee extends CacheableProcedure
 {
-    #[MethodParam(description: '活动ID')]
-    public int $chanceId;
-
     public function __construct(
-        private readonly NormalizerInterface $normalizer,
         private readonly ChanceRepository $chanceRepository,
         private readonly Security $security,
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param GetLotteryConsigneeParam $param
+     */
+    public function execute(GetLotteryConsigneeParam|RpcParamInterface $param): ArrayResult
     {
         $chance = $this->chanceRepository->findOneBy([
-            'id' => $this->chanceId,
+            'id' => $param->chanceId,
             'user' => $this->security->getUser(),
         ]);
         if (null === $chance) {
             throw new ApiException('抽奖信息错误');
         }
 
-        $result = $this->normalizer->normalize($chance->getConsignee(), 'array', ['groups' => 'restful_read']);
+        $consignee = $chance->getConsignee();
+        if (null === $consignee) {
+            return new ArrayResult([]);
+        }
 
-        /** @var array<string, mixed> */
-        return is_array($result) ? $result : [];
+        return $consignee->retrievePlainArray();
     }
 
     public function getCacheKey(JsonRpcRequest $request): string

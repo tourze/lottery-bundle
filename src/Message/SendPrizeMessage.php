@@ -7,7 +7,7 @@ use Tourze\AsyncContracts\AsyncMessageInterface;
 /**
  * 异步发送奖励
  */
-class SendPrizeMessage implements AsyncMessageInterface
+final class SendPrizeMessage implements AsyncMessageInterface
 {
     private string $chanceId;
 

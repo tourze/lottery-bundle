@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Tests\Procedure;
 
+use LotteryBundle\Param\GetAllLotteryChanceParam;
 use LotteryBundle\Procedure\GetAllLotteryChance;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal
@@ -24,33 +28,92 @@ final class GetAllLotteryChanceTest extends AbstractProcedureTestCase
     {
         $procedure = self::getService(GetAllLotteryChance::class);
         $this->assertInstanceOf(GetAllLotteryChance::class, $procedure);
-        $this->assertInstanceOf(CacheableProcedure::class, $procedure);
     }
 
-    public function testDefaultPropertiesHaveCorrectValues(): void
+    public function testExtendsCacheableProcedure(): void
     {
-        $procedure = self::getService(GetAllLotteryChance::class);
-
-        $this->assertSame(50, $procedure->pageSize);
+        $reflectionClass = new \ReflectionClass(GetAllLotteryChance::class);
+        $this->assertTrue($reflectionClass->isSubclassOf(CacheableProcedure::class));
     }
 
-    public function testSetPropertiesWorksCorrectly(): void
+    public function testParamHasCorrectDefaults(): void
     {
-        $procedure = self::getService(GetAllLotteryChance::class);
+        $param = new GetAllLotteryChanceParam('test-activity');
 
-        $procedure->activityId = 'test-activity';
-        $procedure->pageSize = 100;
-
-        $this->assertSame('test-activity', $procedure->activityId);
-        $this->assertSame(100, $procedure->pageSize);
+        $this->assertSame('test-activity', $param->activityId);
+        $this->assertSame(50, $param->pageSize);
     }
 
-    public function testExecute(): void
+    public function testParamWithCustomPageSize(): void
     {
-        $procedure = self::getService(GetAllLotteryChance::class);
+        $param = new GetAllLotteryChanceParam('test-activity', 100);
 
-        $reflection = new \ReflectionMethod($procedure, 'execute');
-        $this->assertTrue($reflection->isPublic());
-        $this->assertEquals('array', $reflection->getReturnType()?->__toString());
+        $this->assertSame('test-activity', $param->activityId);
+        $this->assertSame(100, $param->pageSize);
+    }
+
+    public function testHasRequiredMethods(): void
+    {
+        $reflectionClass = new \ReflectionClass(GetAllLotteryChance::class);
+
+        $this->assertTrue($reflectionClass->hasMethod('execute'));
+        $this->assertTrue($reflectionClass->hasMethod('getCacheKey'));
+        $this->assertTrue($reflectionClass->hasMethod('getCacheDuration'));
+        $this->assertTrue($reflectionClass->hasMethod('getCacheTags'));
+    }
+
+    public function testExecuteMethodSignature(): void
+    {
+        $reflectionMethod = new \ReflectionMethod(GetAllLotteryChance::class, 'execute');
+
+        $this->assertTrue($reflectionMethod->isPublic());
+        $returnType = $reflectionMethod->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals(ArrayResult::class, $returnType->getName());
+    }
+
+    public function testGetCacheKeyMethodSignature(): void
+    {
+        $reflectionMethod = new \ReflectionMethod(GetAllLotteryChance::class, 'getCacheKey');
+
+        $this->assertTrue($reflectionMethod->isPublic());
+        $returnType = $reflectionMethod->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('string', $returnType->getName());
+    }
+
+    public function testGetCacheDurationMethodSignature(): void
+    {
+        $reflectionMethod = new \ReflectionMethod(GetAllLotteryChance::class, 'getCacheDuration');
+
+        $this->assertTrue($reflectionMethod->isPublic());
+        $returnType = $reflectionMethod->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('int', $returnType->getName());
+    }
+
+    public function testGetCacheTagsMethodSignature(): void
+    {
+        $reflectionMethod = new \ReflectionMethod(GetAllLotteryChance::class, 'getCacheTags');
+
+        $this->assertTrue($reflectionMethod->isPublic());
+        $returnType = $reflectionMethod->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('iterable', $returnType->getName());
+    }
+
+    public function testConstructorParameters(): void
+    {
+        $reflectionClass = new \ReflectionClass(GetAllLotteryChance::class);
+        $constructor = $reflectionClass->getConstructor();
+
+        $this->assertNotNull($constructor);
+        $params = $constructor->getParameters();
+        $this->assertCount(4, $params);
+
+        $this->assertEquals('activityRepository', $params[0]->getName());
+        $this->assertEquals('chanceRepository', $params[1]->getName());
+        $this->assertEquals('eventDispatcher', $params[2]->getName());
+        $this->assertEquals('security', $params[3]->getName());
     }
 }

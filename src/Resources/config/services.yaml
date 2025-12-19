@@ -3,19 +3,20 @@ services:
   _defaults:
     autowire: true      # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-    public: true
+    public: false
 
-  LotteryBundle\Command\:
-    resource: '../../Command/'
   LotteryBundle\Controller\:
     resource: '../../Controller/'
+  LotteryBundle\Repository\:
+    resource: '../../Repository/'
+  LotteryBundle\Service\:
+    resource: '../../Service/'
+    public: true
+  LotteryBundle\Command\:
+    resource: '../../Command/'
   LotteryBundle\ExpressionLanguage\:
     resource: '../../ExpressionLanguage/'
   LotteryBundle\MessageHandler\:
     resource: '../../MessageHandler/'
   LotteryBundle\Procedure\:
     resource: '../../Procedure/'
-  LotteryBundle\Repository\:
-    resource: '../../Repository/'
-  LotteryBundle\Service\:
-    resource: '../../Service/'

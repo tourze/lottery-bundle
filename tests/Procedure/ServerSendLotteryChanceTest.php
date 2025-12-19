@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Tests\Procedure;
 
 use LotteryBundle\Procedure\ServerSendLotteryChance;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
+use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal
@@ -17,6 +21,18 @@ final class ServerSendLotteryChanceTest extends AbstractProcedureTestCase
     protected function onSetUp(): void
     {
         // 子类特定的初始化逻辑
+    }
+
+    public function testServiceExists(): void
+    {
+        $procedure = self::getService(ServerSendLotteryChance::class);
+        $this->assertInstanceOf(ServerSendLotteryChance::class, $procedure);
+    }
+
+    public function testExtendsLockableProcedure(): void
+    {
+        $reflectionClass = new \ReflectionClass(ServerSendLotteryChance::class);
+        $this->assertTrue($reflectionClass->isSubclassOf(LockableProcedure::class));
     }
 
     public function testHasRequiredMethods(): void
@@ -33,31 +49,20 @@ final class ServerSendLotteryChanceTest extends AbstractProcedureTestCase
         $this->assertTrue($reflectionMethod->isPublic());
         $returnType = $reflectionMethod->getReturnType();
         $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals(ArrayResult::class, $returnType->getName());
     }
 
-    public function testHasRequiredProperties(): void
+    public function testConstructorParameters(): void
     {
         $reflectionClass = new \ReflectionClass(ServerSendLotteryChance::class);
+        $constructor = $reflectionClass->getConstructor();
 
-        $this->assertTrue($reflectionClass->hasProperty('activityId'));
-        $this->assertTrue($reflectionClass->hasProperty('userIdentity'));
-        $this->assertTrue($reflectionClass->hasProperty('title'));
-        $this->assertTrue($reflectionClass->hasProperty('startTime'));
-        $this->assertTrue($reflectionClass->hasProperty('expireTime'));
+        $this->assertNotNull($constructor);
+        $params = $constructor->getParameters();
+        $this->assertCount(3, $params);
 
-        $activityIdProperty = $reflectionClass->getProperty('activityId');
-        $this->assertTrue($activityIdProperty->isPublic());
-        $activityIdType = $activityIdProperty->getType();
-        if ($activityIdType instanceof \ReflectionNamedType) {
-            $this->assertEquals('int', $activityIdType->getName());
-        }
-
-        $userIdentityProperty = $reflectionClass->getProperty('userIdentity');
-        $this->assertTrue($userIdentityProperty->isPublic());
-        $userIdentityType = $userIdentityProperty->getType();
-        if ($userIdentityType instanceof \ReflectionNamedType) {
-            $this->assertEquals('string', $userIdentityType->getName());
-        }
+        $this->assertEquals('activityRepository', $params[0]->getName());
+        $this->assertEquals('lotteryService', $params[1]->getName());
+        $this->assertEquals('userLoader', $params[2]->getName());
     }
 }

@@ -31,7 +31,6 @@ class Prize implements \Stringable, Itemable, PlainArrayInterface, AdminArrayInt
     use TimestampableAware;
     use BlameableAware;
 
-    /** @phpstan-ignore-next-line */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]

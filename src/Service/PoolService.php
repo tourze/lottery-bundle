@@ -8,7 +8,7 @@ use LotteryBundle\Event\DecidePoolEvent;
 use LotteryBundle\Exception\LotteryException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class PoolService
+final class PoolService
 {
     public function __construct(private readonly EventDispatcherInterface $eventDispatcher)
     {

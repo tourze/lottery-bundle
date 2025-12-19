@@ -6,8 +6,6 @@ use LotteryBundle\Command\CheckReviewChanceToSendPrizeCommand;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractCommandTestCase;
 
@@ -48,12 +46,9 @@ final class CheckReviewChanceToSendPrizeCommandTest extends AbstractCommandTestC
     public function testExecuteWithValidInputReturnsSuccess(): void
     {
         $command = self::getService(CheckReviewChanceToSendPrizeCommand::class);
-        $input = $this->createMock(InputInterface::class);
-        $output = $this->createMock(OutputInterface::class);
-
-        $result = $command->run($input, $output);
-
-        $this->assertSame(Command::SUCCESS, $result);
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([]);
+        $this->assertSame(Command::SUCCESS, $commandTester->getStatusCode());
     }
 
     public function testGetDescriptionReturnsCorrectDescription(): void

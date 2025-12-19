@@ -4,7 +4,7 @@ namespace LotteryBundle\DependencyInjection;
 
 use Tourze\SymfonyDependencyServiceLoader\AutoExtension;
 
-class LotteryExtension extends AutoExtension
+final class LotteryExtension extends AutoExtension
 {
     protected function getConfigDir(): string
     {

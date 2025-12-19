@@ -44,13 +44,8 @@ final class StockTest extends AbstractEntityTestCase
     public function testSetPrizeSetsAndGetsValue(): void
     {
         $stock = new Stock();
-        /*
-         * 使用具体类 Prize 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Stock与Prize的关联关系设置
-         * 2) 使用合理性：Prize是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Prize没有对应的接口
-         */
-        $prize = $this->createMock(Prize::class);
+        $prize = new Prize();
+        $prize->setName('Test Prize');
 
         $stock->setPrize($prize);
         $this->assertSame($prize, $stock->getPrize());
@@ -59,13 +54,8 @@ final class StockTest extends AbstractEntityTestCase
     public function testSetChanceSetsAndGetsValue(): void
     {
         $stock = new Stock();
-        /*
-         * 使用具体类 Chance 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Stock与Chance的关联关系设置
-         * 2) 使用合理性：Chance是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Chance没有对应的接口
-         */
-        $chance = $this->createMock(Chance::class);
+        $chance = new Chance();
+        $chance->setTitle('Test Chance');
 
         $stock->setChance($chance);
         $this->assertSame($chance, $stock->getChance());
@@ -101,17 +91,8 @@ final class StockTest extends AbstractEntityTestCase
     public function testToStringWithPrizeAndSnReturnsFormattedString(): void
     {
         $stock = new Stock();
-        /*
-         * 使用具体类 Prize 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Stock的__toString方法中使用Prize的名称
-         * 2) 使用合理性：Prize是Entity类，测试需要模拟getName方法返回值
-         * 3) 替代方案：暂无更好方案，Prize没有对应的接口
-         */
-        $prize = $this->createMock(Prize::class);
-        $prize->expects($this->once())
-            ->method('getName')
-            ->willReturn('测试奖品')
-        ;
+        $prize = new Prize();
+        $prize->setName('测试奖品');
 
         $stock->setPrize($prize);
         $stock->setSn('SN123456789');
@@ -193,20 +174,10 @@ final class StockTest extends AbstractEntityTestCase
     public function testFluentInterfaceChainedCalls(): void
     {
         $stock = new Stock();
-        /*
-         * 使用具体类 Prize 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Stock的流式接口设置关联对象
-         * 2) 使用合理性：Prize是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Prize没有对应的接口
-         */
-        $prize = $this->createMock(Prize::class);
-        /*
-         * 使用具体类 Chance 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证Stock的流式接口设置关联对象
-         * 2) 使用合理性：Chance是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Chance没有对应的接口
-         */
-        $chance = $this->createMock(Chance::class);
+        $prize = new Prize();
+        $prize->setName('Test Prize');
+        $chance = new Chance();
+        $chance->setTitle('Test Chance');
 
         $stock->setSn('SN123');
         $stock->setPrize($prize);

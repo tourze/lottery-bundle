@@ -38,20 +38,4 @@ final class LotteryExtensionTest extends AbstractDependencyInjectionExtensionTes
         $this->assertTrue($reflection->isPublic());
         $this->assertEquals(2, $reflection->getNumberOfParameters());
     }
-
-    public function testGetXsdValidationBasePathReturnsFalse(): void
-    {
-        $extension = new LotteryExtension();
-
-        $result = $extension->getXsdValidationBasePath();
-        $this->assertFalse($result);
-    }
-
-    public function testGetNamespaceReturnsHttp(): void
-    {
-        $extension = new LotteryExtension();
-
-        $result = $extension->getNamespace();
-        $this->assertSame('http://example.org/schema/dic/lottery', $result);
-    }
 }

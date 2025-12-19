@@ -5,7 +5,7 @@ namespace LotteryBundle\Tests\Event;
 use Doctrine\ORM\QueryBuilder;
 use LotteryBundle\Event\AllLotteryChanceEvent;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 use Symfony\Contracts\EventDispatcher\Event;
 use Tourze\PHPUnitSymfonyUnitTest\AbstractEventTestCase;
 
@@ -27,10 +27,7 @@ final class AllLotteryChanceEventTest extends AbstractEventTestCase
     {
         $event = new AllLotteryChanceEvent();
 
-        // 使用具体类进行 mock，因为：
-        // 1. QueryBuilder 是 Doctrine ORM 的核心查询构建器，测试中需要验证其具体方法调用
-        // 2. 测试需要模拟查询构建逻辑，这是 Event 测试的标准做法
-        // 3. 这些类在测试中的使用是为了验证 Event 的数据传递逻辑
+        // 使用 createMock 创建 QueryBuilder，因为它需要 EntityManager
         $queryBuilder = $this->createMock(QueryBuilder::class);
 
         $event->setQueryBuilder($queryBuilder);
@@ -41,7 +38,7 @@ final class AllLotteryChanceEventTest extends AbstractEventTestCase
     public function testSetUserSetsAndGetsUser(): void
     {
         $event = new AllLotteryChanceEvent();
-        $user = $this->createMock(UserInterface::class);
+        $user = new InMemoryUser('test_user', 'password');
 
         $event->setUser($user);
 
@@ -61,12 +58,9 @@ final class AllLotteryChanceEventTest extends AbstractEventTestCase
     public function testFullWorkflowSetAndGetAllProperties(): void
     {
         $event = new AllLotteryChanceEvent();
-        // 使用具体类进行 mock，因为：
-        // 1. QueryBuilder 是 Doctrine ORM 的核心查询构建器，测试中需要验证其具体方法调用
-        // 2. 测试需要模拟查询构建逻辑，这是 Event 测试的标准做法
-        // 3. 这些类在测试中的使用是为了验证 Event 的数据传递逻辑
+
         $queryBuilder = $this->createMock(QueryBuilder::class);
-        $user = $this->createMock(UserInterface::class);
+        $user = new InMemoryUser('test_user', 'password');
         $activityId = 'activity456';
 
         $event->setQueryBuilder($queryBuilder);

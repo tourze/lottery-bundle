@@ -8,7 +8,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 /**
  * 抽奖机会的额外处理
  */
-class ChanceEvent extends Event
+final class ChanceEvent extends Event
 {
     private Chance $chance;
 

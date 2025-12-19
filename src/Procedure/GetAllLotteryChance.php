@@ -7,6 +7,7 @@ namespace LotteryBundle\Procedure;
 use LotteryBundle\Entity\Activity;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Event\AllLotteryChanceEvent;
+use LotteryBundle\Param\GetAllLotteryChanceParam;
 use LotteryBundle\Repository\ActivityRepository;
 use LotteryBundle\Repository\ChanceRepository;
 use LotteryBundle\Service\TextResourceProvider;
@@ -16,10 +17,11 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\DoctrineHelper\CacheHelper;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 
 #[MethodTag(name: '抽奖模块')]
@@ -28,12 +30,6 @@ use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 #[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetAllLotteryChance extends CacheableProcedure
 {
-    #[MethodParam(description: '活动ID')]
-    public string $activityId;
-
-    #[MethodParam(description: '条数')]
-    public int $pageSize = 50;
-
     public function __construct(
         private readonly ActivityRepository $activityRepository,
         private readonly ChanceRepository $chanceRepository,
@@ -42,10 +38,13 @@ class GetAllLotteryChance extends CacheableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param GetAllLotteryChanceParam $param
+     */
+    public function execute(GetAllLotteryChanceParam|RpcParamInterface $param): ArrayResult
     {
         $activity = $this->activityRepository->findOneBy([
-            'id' => $this->activityId,
+            'id' => $param->activityId,
             'valid' => true,
         ]);
         if (null === $activity) {
@@ -58,7 +57,7 @@ class GetAllLotteryChance extends CacheableProcedure
             ->setParameter('activity', $activity)
             ->setParameter('valid', false)
             ->setParameter('canShow', true)
-            ->setMaxResults($this->pageSize)
+            ->setMaxResults($param->pageSize)
             ->orderBy('c.id', 'DESC')
         ;
 
@@ -72,7 +71,6 @@ class GetAllLotteryChance extends CacheableProcedure
         $this->eventDispatcher->dispatch($event);
 
         $chances = $event->getQueryBuilder()->getQuery()->getResult();
-        assert(is_array($chances));
 
         $list = [];
         foreach ($chances as $item) {
@@ -92,14 +90,13 @@ class GetAllLotteryChance extends CacheableProcedure
             if (null === $user) {
                 continue;
             }
-            $str = method_exists($user, 'getNickName') ? $user->getNickName() : $user->getUserIdentifier();
-            assert(is_string($str));
+            $str = method_exists($user, 'getNickName') ? (string) $user->getNickName() : $user->getUserIdentifier();
 
             $tmp['nick_name'] = mb_substr($str, 0, 1) . '**' . mb_substr($str, -1, 1);
             $list[] = $tmp;
         }
 
-        return ['data' => $list];
+        return new ArrayResult(['data' => $list]);
     }
 
     public function getCacheKey(JsonRpcRequest $request): string

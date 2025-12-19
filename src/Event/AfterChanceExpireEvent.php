@@ -8,7 +8,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 /**
  * 抽奖机会过期后的额外处理
  */
-class AfterChanceExpireEvent extends Event
+final class AfterChanceExpireEvent extends Event
 {
     private Chance $chance;
 

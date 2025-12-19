@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Tests\Procedure;
 
 use LotteryBundle\Procedure\GetUserValidLotteryChanceCounts;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal
@@ -17,6 +21,18 @@ final class GetUserValidLotteryChanceCountsTest extends AbstractProcedureTestCas
     protected function onSetUp(): void
     {
         // 子类特定的初始化逻辑
+    }
+
+    public function testServiceExists(): void
+    {
+        $procedure = self::getService(GetUserValidLotteryChanceCounts::class);
+        $this->assertInstanceOf(GetUserValidLotteryChanceCounts::class, $procedure);
+    }
+
+    public function testExtendsBaseProcedure(): void
+    {
+        $reflectionClass = new \ReflectionClass(GetUserValidLotteryChanceCounts::class);
+        $this->assertTrue($reflectionClass->isSubclassOf(BaseProcedure::class));
     }
 
     public function testHasRequiredMethods(): void
@@ -33,19 +49,20 @@ final class GetUserValidLotteryChanceCountsTest extends AbstractProcedureTestCas
         $this->assertTrue($reflectionMethod->isPublic());
         $returnType = $reflectionMethod->getReturnType();
         $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals(ArrayResult::class, $returnType->getName());
     }
 
-    public function testHasRequiredProperties(): void
+    public function testConstructorParameters(): void
     {
         $reflectionClass = new \ReflectionClass(GetUserValidLotteryChanceCounts::class);
+        $constructor = $reflectionClass->getConstructor();
 
-        $this->assertTrue($reflectionClass->hasProperty('activityId'));
+        $this->assertNotNull($constructor);
+        $params = $constructor->getParameters();
+        $this->assertCount(3, $params);
 
-        $activityIdProperty = $reflectionClass->getProperty('activityId');
-        $this->assertTrue($activityIdProperty->isPublic());
-        $propertyType = $activityIdProperty->getType();
-        $this->assertInstanceOf(\ReflectionNamedType::class, $propertyType);
-        $this->assertEquals('int', $propertyType->getName());
+        $this->assertEquals('activityRepository', $params[0]->getName());
+        $this->assertEquals('security', $params[1]->getName());
+        $this->assertEquals('chanceRepository', $params[2]->getName());
     }
 }

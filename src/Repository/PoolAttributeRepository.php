@@ -13,7 +13,7 @@ use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
  * @extends ServiceEntityRepository<PoolAttribute>
  */
 #[AsRepository(entityClass: PoolAttribute::class)]
-class PoolAttributeRepository extends ServiceEntityRepository
+final class PoolAttributeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

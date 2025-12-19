@@ -5,15 +5,17 @@ namespace LotteryBundle\Procedure;
 use Doctrine\ORM\EntityManagerInterface;
 use LotteryBundle\Entity\Chance;
 use LotteryBundle\Entity\Consignee;
+use LotteryBundle\Param\SaveOrUpdateLotteryConsigneeParam;
 use LotteryBundle\Repository\ChanceRepository;
 use LotteryBundle\Repository\ConsigneeRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Exception\ApiException;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
@@ -24,21 +26,6 @@ use Tourze\JsonRPCLogBundle\Attribute\Log;
 #[Log]
 class SaveOrUpdateLotteryConsignee extends LockableProcedure
 {
-    #[MethodParam(description: '抽奖机会id')]
-    public int $chanceId;
-
-    #[MethodParam(description: '抽奖地址ID')]
-    public int $consigneeId = 0;
-
-    #[MethodParam(description: '姓名')]
-    public string $realName;
-
-    #[MethodParam(description: '手机号')]
-    public string $mobile;
-
-    #[MethodParam(description: '地址')]
-    public string $address;
-
     public function __construct(
         private readonly ChanceRepository $chanceRepository,
         private readonly ConsigneeRepository $consigneeRepository,
@@ -47,17 +34,20 @@ class SaveOrUpdateLotteryConsignee extends LockableProcedure
     ) {
     }
 
-    public function execute(): array
+    /**
+     * @phpstan-param SaveOrUpdateLotteryConsigneeParam $param
+     */
+    public function execute(SaveOrUpdateLotteryConsigneeParam|RpcParamInterface $param): ArrayResult
     {
         $chance = $this->chanceRepository->findOneBy([
-            'id' => $this->chanceId,
+            'id' => $param->chanceId,
             'user' => $this->security->getUser(),
         ]);
         if (null === $chance) {
             throw new ApiException('抽奖信息错误');
         }
 
-        $consignee = $this->consigneeRepository->find($this->consigneeId);
+        $consignee = $this->consigneeRepository->find($param->consigneeId);
         if (null === $consignee) {
             $consignee = $this->consigneeRepository->findOneBy([
                 'chance' => $chance,
@@ -68,14 +58,14 @@ class SaveOrUpdateLotteryConsignee extends LockableProcedure
         }
 
         $consignee->setChance($chance);
-        $consignee->setRealName($this->realName);
-        $consignee->setMobile($this->mobile);
-        $consignee->setAddress($this->address);
+        $consignee->setRealName($param->realName);
+        $consignee->setMobile($param->mobile);
+        $consignee->setAddress($param->address);
         $this->entityManager->persist($consignee);
         $this->entityManager->flush();
 
-        return [
+        return new ArrayResult([
             '__message' => '保存成功',
-        ];
+        ]);
     }
 }

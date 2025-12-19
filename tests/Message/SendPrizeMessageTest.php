@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LotteryBundle\Tests\Message;
 
 use LotteryBundle\Message\SendPrizeMessage;

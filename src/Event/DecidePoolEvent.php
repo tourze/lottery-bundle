@@ -8,7 +8,7 @@ use LotteryBundle\Entity\Pool;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class DecidePoolEvent extends Event
+final class DecidePoolEvent extends Event
 {
     private ?Chance $chance = null;
 

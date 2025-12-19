@@ -78,13 +78,8 @@ final class PoolAttributeTest extends AbstractEntityTestCase
     public function testSetPoolSetsAndReturnsPool(): void
     {
         $attribute = new PoolAttribute();
-        /*
-         * 使用具体类 Pool 创建Mock对象
-         * 1) 必须使用具体类的原因：测试需要验证PoolAttribute与Pool的关联关系设置
-         * 2) 使用合理性：Pool是Entity类，测试仅需要验证关联设置，不需要具体实现
-         * 3) 替代方案：暂无更好方案，Pool没有对应的接口
-         */
-        $pool = $this->createMock(Pool::class);
+        $pool = new Pool();
+        $pool->setTitle('Test Pool');
 
         $attribute->setPool($pool);
 
